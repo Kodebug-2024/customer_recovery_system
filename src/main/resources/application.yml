@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: customer-recovery-system
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/crm}
+    username: ${DB_USER:crm}
+    password: ${DB_PASSWORD:crm}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+        format_sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:change-me-change-me-change-me-change-me-32+chars}
+      issuer: codezilla-crm
+      ttl-minutes: 240
+    webhook:
+      api-key: ${WEBHOOK_API_KEY:dev-webhook-key}
+  ratelimit:
+    webhook:
+      requests-per-minute: 60
+
+integrations:
+  whatsapp:
+    mode: ${WHATSAPP_MODE:stub}        # stub | real
+    base-url: https://graph.facebook.com/v19.0
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+  telegram:
+    mode: ${TELEGRAM_MODE:stub}
+    base-url: https://api.telegram.org
+    bot-token: ${TELEGRAM_BOT_TOKEN:}
+    default-chat-id: ${TELEGRAM_CHAT_ID:}
+  openai:
+    mode: ${OPENAI_MODE:stub}
+    base-url: https://api.openai.com/v1
+    api-key: ${OPENAI_API_KEY:}
+    model: gpt-4o-mini
+
+logging:
+  level:
+    com.codezilla.crm: INFO

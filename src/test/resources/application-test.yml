@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:crm;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+app:
+  security:
+    jwt:
+      secret: test-secret-test-secret-test-secret-test-secret
+      issuer: codezilla-crm
+      ttl-minutes: 60
+    webhook:
+      api-key: test-webhook-key
+
+integrations:
+  whatsapp: { mode: stub }
+  telegram: { mode: stub }
+  openai:   { mode: stub }

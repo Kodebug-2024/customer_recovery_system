@@ -1,0 +1,11 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    hibernate:
+      ddl-auto: validate
+logging:
+  level:
+    com.codezilla.crm: DEBUG
+    org.springframework.web: INFO
