@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
-import type { Lead, LeadStatus, MessageItem } from "@/lib/types";
+import type { Lead, LeadStatus, MessageItem, UserView } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,7 @@ import { Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STATUSES: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED", "WON", "LOST"];
+const UNASSIGNED = "__none__";
 
 function statusVariant(s: LeadStatus): BadgeProps["variant"] {
   switch (s) {
@@ -39,6 +40,7 @@ function statusVariant(s: LeadStatus): BadgeProps["variant"] {
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [lead, setLead] = useState<Lead | null>(null);
+  const [users, setUsers] = useState<UserView[]>([]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [reply, setReply] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -46,12 +48,14 @@ export default function LeadDetailPage() {
   async function load() {
     setError(null);
     try {
-      const [l, m] = await Promise.all([
+      const [l, m, u] = await Promise.all([
         api<Lead>(`/api/leads/${id}`),
         api<MessageItem[]>(`/api/leads/${id}/messages`),
+        api<UserView[]>(`/api/users`).catch(() => [] as UserView[]),
       ]);
       setLead(l);
       setMessages(m);
+      setUsers(u);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -69,6 +73,15 @@ export default function LeadDetailPage() {
     setLead(updated);
   }
 
+  async function changeAssignee(value: string) {
+    const userId = value === UNASSIGNED ? null : value;
+    const updated = await api<Lead>(`/api/leads/${id}/assign`, {
+      method: "PATCH",
+      body: JSON.stringify({ userId }),
+    });
+    setLead(updated);
+  }
+
   async function send() {
     if (!reply.trim()) return;
     await api(`/api/leads/${id}/messages`, {
@@ -82,6 +95,12 @@ export default function LeadDetailPage() {
   if (error) return <p className="text-destructive">{error}</p>;
   if (!lead) return <p className="text-muted-foreground">Loading…</p>;
 
+  const assigneeLabel = (() => {
+    if (!lead.assignedToUserId) return null;
+    const u = users.find((x) => x.id === lead.assignedToUserId);
+    return u ? u.name || u.email : lead.assignedToUserId;
+  })();
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
@@ -91,6 +110,12 @@ export default function LeadDetailPage() {
           </h1>
           <p className="text-muted-foreground text-sm">
             {lead.source} · created {new Date(lead.createdAt).toLocaleString()}
+            {assigneeLabel && (
+              <>
+                {" · "}
+                <span>Assigned to {assigneeLabel}</span>
+              </>
+            )}
           </p>
         </div>
         <Badge variant={statusVariant(lead.status)}>{lead.status}</Badge>
@@ -106,7 +131,7 @@ export default function LeadDetailPage() {
             <div className="text-xs text-muted-foreground">Email</div>
             <div>{lead.email || "—"}</div>
           </div>
-          <div className="col-span-2">
+          <div>
             <div className="text-xs text-muted-foreground mb-1">Status</div>
             <Select
               value={lead.status}
@@ -121,6 +146,29 @@ export default function LeadDetailPage() {
                     {s}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground mb-1">
+              Assigned to
+            </div>
+            <Select
+              value={lead.assignedToUserId ?? UNASSIGNED}
+              onValueChange={changeAssignee}
+            >
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="Unassigned" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
+                {users
+                  .filter((u) => u.enabled)
+                  .map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name || u.email}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

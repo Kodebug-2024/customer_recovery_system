@@ -8,6 +8,7 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "leads")
@@ -36,8 +37,8 @@ public class Lead extends TenantAwareEntity {
     @Column(name = "status", length = 32, nullable = false)
     private LeadStatus status = LeadStatus.NEW;
 
-    @Column(name = "assigned_to", length = 100)
-    private String assignedTo;
+    @Column(name = "assigned_to_user_id")
+    private UUID assignedToUserId;
 
     @Column(name = "deleted_at")
     private Instant deletedAt;

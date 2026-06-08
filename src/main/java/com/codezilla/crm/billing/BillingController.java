@@ -15,19 +15,23 @@ public class BillingController {
 
     private final BillingService billing;
     private final SubscriptionRepository subs;
+    private final BillingGate gate;
     private final String publicBaseUrl;
 
     public BillingController(BillingService billing,
                              SubscriptionRepository subs,
+                             BillingGate gate,
                              @Value("${app.public-base-url:http://localhost:3000}") String publicBaseUrl) {
         this.billing = billing;
         this.subs = subs;
+        this.gate = gate;
         this.publicBaseUrl = publicBaseUrl;
     }
 
     public record BillingView(
             String plan, String status, boolean cancelAtPeriodEnd,
-            Instant currentPeriodEnd, boolean live) {}
+            Instant currentPeriodEnd, boolean live,
+            long leadsUsedThisMonth, int leadLimitThisMonth, boolean aiAllowed) {}
 
     public record CheckoutRequest(@NotNull Plan plan) {}
     public record UrlResponse(String url) {}
@@ -42,12 +46,16 @@ public class BillingController {
                     n.setStatus(SubscriptionStatus.ACTIVE);
                     return subs.save(n);
                 });
+        var usage = gate.usage();
         return new BillingView(
                 s.getPlan().name(),
                 s.getStatus().name(),
                 s.isCancelAtPeriodEnd(),
                 s.getCurrentPeriodEnd(),
-                billing.isLive());
+                billing.isLive(),
+                usage.used(),
+                usage.limit(),
+                gate.aiAllowed());
     }
 
     @PostMapping("/checkout")

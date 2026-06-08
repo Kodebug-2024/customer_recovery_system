@@ -19,6 +19,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("admin@demo.local");
   const [password, setPassword] = useState("password123");
+  const [totpCode, setTotpCode] = useState("");
+  const [needTotp, setNeedTotp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -31,11 +33,22 @@ export default function LoginPage() {
       const res = await fetch(`${api}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          totpCode: needTotp ? totpCode : undefined,
+        }),
       });
-      if (!res.ok) throw new Error("Invalid credentials");
-      const data = await res.json();
-      setToken(data.token);
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 401 && body.twoFactorRequired) {
+          setNeedTotp(true);
+          setError(null);
+          return;
+        }
+        throw new Error(body.error || "Invalid credentials");
+      }
+      setToken(body.token);
       router.replace("/");
     } catch (err) {
       setError((err as Error).message);
@@ -73,6 +86,25 @@ export default function LoginPage() {
                 autoComplete="current-password"
               />
             </div>
+            {needTotp && (
+              <div className="space-y-2">
+                <Label htmlFor="totp">6-digit code</Label>
+                <Input
+                  id="totp"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value)}
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  autoFocus
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  From your authenticator app.
+                </p>
+              </div>
+            )}
             {error && <p className="text-sm text-destructive">{error}</p>}
           </CardContent>
           <CardFooter className="flex flex-col gap-3">

@@ -63,7 +63,11 @@ export default function OnboardingPage() {
       const body: Record<string, unknown> = {};
       if (waPhone) body.whatsappPhoneNumberId = waPhone;
       if (waToken) body.whatsappAccessToken = waToken;
-      if (Object.keys(body).length > 0) await api("/api/settings", { method: "PUT", body: JSON.stringify(body) });
+      if (Object.keys(body).length > 0)
+        await api("/api/settings", {
+          method: "PUT",
+          body: JSON.stringify(body),
+        });
       setStep(2);
     } catch (e) {
       setError((e as Error).message);
@@ -147,10 +151,14 @@ export default function OnboardingPage() {
                   id="ph"
                   value={waPhone}
                   onChange={(e) => setWaPhone(e.target.value)}
-                  placeholder={s?.whatsappPhoneNumberId || "e.g. 1238096609383182"}
+                  placeholder={
+                    s?.whatsappPhoneNumberId || "e.g. 1238096609383182"
+                  }
                 />
                 {s?.whatsappPhoneNumberId && (
-                  <p className="text-xs text-muted-foreground">Current: {s.whatsappPhoneNumberId}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Current: {s.whatsappPhoneNumberId}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -164,7 +172,9 @@ export default function OnboardingPage() {
                   autoComplete="new-password"
                 />
                 {s?.whatsappAccessTokenConfigured && (
-                  <p className="text-xs text-muted-foreground">Already configured. Leave blank to keep.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Already configured. Leave blank to keep.
+                  </p>
                 )}
               </div>
             </CardContent>
@@ -187,8 +197,8 @@ export default function OnboardingPage() {
                 <CardTitle>Set your auto-reply</CardTitle>
               </div>
               <CardDescription>
-                Sent automatically to new leads. Use{" "}
-                <code>{"{{name}}"}</code> to insert their name.
+                Sent automatically to new leads. Use <code>{"{{name}}"}</code>{" "}
+                to insert their name.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -224,15 +234,27 @@ export default function OnboardingPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="tn">Name</Label>
-                <Input id="tn" value={testName} onChange={(e) => setTestName(e.target.value)} />
+                <Input
+                  id="tn"
+                  value={testName}
+                  onChange={(e) => setTestName(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tm">Message</Label>
-                <Input id="tm" value={testMessage} onChange={(e) => setTestMessage(e.target.value)} />
+                <Input
+                  id="tm"
+                  value={testMessage}
+                  onChange={(e) => setTestMessage(e.target.value)}
+                />
               </div>
             </CardContent>
             <CardFooter className="justify-between">
-              <Button variant="ghost" onClick={() => finish(false)} disabled={busy}>
+              <Button
+                variant="ghost"
+                onClick={() => finish(false)}
+                disabled={busy}
+              >
                 Skip &amp; finish
               </Button>
               <Button onClick={() => finish(true)} disabled={busy}>

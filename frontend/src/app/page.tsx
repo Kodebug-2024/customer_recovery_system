@@ -17,9 +17,18 @@ import {
 } from "recharts";
 import { TrendingUp, Inbox, Trophy, X as XIcon, Activity } from "lucide-react";
 
-interface DailyCount { date: string; count: number }
-interface SourceCount { source: string; count: number }
-interface StatusCount { status: string; count: number }
+interface DailyCount {
+  date: string;
+  count: number;
+}
+interface SourceCount {
+  source: string;
+  count: number;
+}
+interface StatusCount {
+  status: string;
+  count: number;
+}
 
 const STATUS_COLORS: Record<string, string> = {
   NEW: "#3b82f6",
@@ -103,7 +112,10 @@ export default function DashboardPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={daily}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                />
                 <XAxis
                   dataKey="date"
                   tick={{ fontSize: 11 }}
@@ -130,13 +142,19 @@ export default function DashboardPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={statuses}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                />
                 <XAxis dataKey="status" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                 <Tooltip />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {statuses.map((s) => (
-                    <Cell key={s.status} fill={STATUS_COLORS[s.status] || "#94a3b8"} />
+                    <Cell
+                      key={s.status}
+                      fill={STATUS_COLORS[s.status] || "#94a3b8"}
+                    />
                   ))}
                 </Bar>
               </BarChart>
@@ -155,11 +173,27 @@ export default function DashboardPage() {
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={sources} layout="vertical" margin={{ left: 30 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                <YAxis dataKey="source" type="category" tick={{ fontSize: 11 }} width={90} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                />
+                <XAxis
+                  type="number"
+                  tick={{ fontSize: 11 }}
+                  allowDecimals={false}
+                />
+                <YAxis
+                  dataKey="source"
+                  type="category"
+                  tick={{ fontSize: 11 }}
+                  width={90}
+                />
                 <Tooltip />
-                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                <Bar
+                  dataKey="count"
+                  fill="hsl(var(--primary))"
+                  radius={[0, 4, 4, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           )}

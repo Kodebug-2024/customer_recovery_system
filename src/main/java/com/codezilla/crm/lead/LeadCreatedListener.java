@@ -1,7 +1,7 @@
 package com.codezilla.crm.lead;
 
 import com.codezilla.crm.ai.AiReplyService;
-import com.codezilla.crm.message.MessageDirection;
+import com.codezilla.crm.billing.BillingGate;
 import com.codezilla.crm.message.MessageService;
 import com.codezilla.crm.messaging.MessagingService;
 import com.codezilla.crm.notification.NotificationService;
@@ -25,16 +25,19 @@ public class LeadCreatedListener {
     private final AiReplyService ai;
     private final NotificationService notifications;
     private final MessageService messages;
+    private final BillingGate billing;
 
     public LeadCreatedListener(LeadRepository leads, TenantRepository tenants,
                                MessagingService messaging, AiReplyService ai,
-                               NotificationService notifications, MessageService messages) {
+                               NotificationService notifications, MessageService messages,
+                               BillingGate billing) {
         this.leads = leads;
         this.tenants = tenants;
         this.messaging = messaging;
         this.ai = ai;
         this.notifications = notifications;
         this.messages = messages;
+        this.billing = billing;
     }
 
     @Async
@@ -50,7 +53,11 @@ public class LeadCreatedListener {
             Lead lead = leads.findById(event.leadId()).orElse(null);
             if (lead == null) return;
 
-            if (tenant.isAiEnabled() && lead.getMessage() != null && !lead.getMessage().isBlank()) {
+            // AI replies require the tenant opt-in AND a paid plan (Pro).
+            boolean useAi = tenant.isAiEnabled()
+                    && lead.getMessage() != null && !lead.getMessage().isBlank()
+                    && billing.aiAllowed();
+            if (useAi) {
                 String reply = ai.generate(tenant, lead.getMessage());
                 if (reply != null && !reply.isBlank()) {
                     messaging.sendText(lead, reply, "whatsapp");

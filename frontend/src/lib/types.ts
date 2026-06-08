@@ -8,7 +8,7 @@ export interface Lead {
   source: string;
   message: string | null;
   status: LeadStatus;
-  assignedTo: string | null;
+  assignedToUserId: string | null;
   createdAt: string;
   updatedAt: string;
 }

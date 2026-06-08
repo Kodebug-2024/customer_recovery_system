@@ -11,6 +11,7 @@ public interface LeadRepository extends JpaRepository<Lead, UUID> {
     Page<Lead> findAllByTenantId(UUID tenantId, Pageable pageable);
     Page<Lead> findAllByTenantIdAndStatus(UUID tenantId, LeadStatus status, Pageable pageable);
     Page<Lead> findAllByTenantIdAndSource(UUID tenantId, String source, Pageable pageable);
+    Page<Lead> findAllByTenantIdAndAssignedToUserId(UUID tenantId, UUID assignedToUserId, Pageable pageable);
     List<Lead> findAllByTenantId(UUID tenantId);
     long countByTenantIdAndStatus(UUID tenantId, LeadStatus status);
 }

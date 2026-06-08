@@ -31,6 +31,7 @@ public class AuthController {
     private final PasswordEncoder encoder;
     private final JwtService jwt;
     private final EmailVerificationService verifications;
+    private final TwoFactorService twoFactor;
 
     private final int maxFailedLogins;
     private final Duration lockDuration;
@@ -39,6 +40,7 @@ public class AuthController {
     public AuthController(UserRepository users, TenantRepository tenants,
                           PasswordEncoder encoder, JwtService jwt,
                           EmailVerificationService verifications,
+                          TwoFactorService twoFactor,
                           @Value("${app.security.lockout.max-failed:5}") int maxFailedLogins,
                           @Value("${app.security.lockout.duration-minutes:15}") long lockMinutes,
                           @Value("${app.security.email-verification.required:false}") boolean requireEmailVerification) {
@@ -47,12 +49,13 @@ public class AuthController {
         this.encoder = encoder;
         this.jwt = jwt;
         this.verifications = verifications;
+        this.twoFactor = twoFactor;
         this.maxFailedLogins = maxFailedLogins;
         this.lockDuration = Duration.ofMinutes(lockMinutes);
         this.requireEmailVerification = requireEmailVerification;
     }
 
-    public record LoginRequest(@NotBlank String email, @NotBlank String password) {}
+    public record LoginRequest(@NotBlank String email, @NotBlank String password, String totpCode) {}
 
     public record RegisterRequest(
             @NotBlank String businessName,
@@ -91,6 +94,23 @@ public class AuthController {
         if (requireEmailVerification && user.getEmailVerifiedAt() == null) {
             return ResponseEntity.status(403).body(Map.of(
                     "error", "Email not verified. Check your inbox for the confirmation link."));
+        }
+        // 2FA challenge: if enabled, the request must include the current TOTP code.
+        if (user.isTotpEnabled()) {
+            if (req.totpCode() == null || req.totpCode().isBlank()) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "error", "Two-factor code required",
+                        "twoFactorRequired", true));
+            }
+            if (!twoFactor.verifyLoginCode(user, req.totpCode())) {
+                user.setFailedLoginCount(user.getFailedLoginCount() + 1);
+                if (user.getFailedLoginCount() >= maxFailedLogins) {
+                    user.setLockedUntil(Instant.now().plus(lockDuration));
+                    user.setFailedLoginCount(0);
+                }
+                users.save(user);
+                return ResponseEntity.status(401).body(Map.of("error", "Invalid two-factor code"));
+            }
         }
         user.setFailedLoginCount(0);
         user.setLockedUntil(null);

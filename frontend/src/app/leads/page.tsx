@@ -53,6 +53,7 @@ function statusVariant(s: LeadStatus): BadgeProps["variant"] {
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [status, setStatus] = useState<LeadStatus | "ALL">("ALL");
+  const [mine, setMine] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +66,7 @@ export default function LeadsPage() {
     try {
       const qs = new URLSearchParams({ size: "50", sort: "createdAt,desc" });
       if (status !== "ALL") qs.set("status", status);
+      if (mine) qs.set("mine", "true");
       const data = await api<PageResp<Lead>>(`/api/leads?${qs}`);
       setLeads(data.content);
     } catch (e) {
@@ -76,7 +78,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     load();
-  }, [status]);
+  }, [status, mine]);
 
   const filtered = leads.filter((l) => {
     if (!search) return true;
@@ -197,6 +199,13 @@ export default function LeadsPage() {
             ))}
           </SelectContent>
         </Select>
+        <Button
+          variant={mine ? "default" : "outline"}
+          size="default"
+          onClick={() => setMine((m) => !m)}
+        >
+          Assigned to me
+        </Button>
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}

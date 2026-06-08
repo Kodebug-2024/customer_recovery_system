@@ -1,12 +1,17 @@
 package com.codezilla.crm.lead;
 
 import com.codezilla.crm.audit.AuditService;
+import com.codezilla.crm.billing.BillingGate;
 import com.codezilla.crm.tenant.TenantContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -14,18 +19,38 @@ import java.util.UUID;
 @Service
 public class LeadService {
 
+    private static final Logger log = LoggerFactory.getLogger(LeadService.class);
+
     private final LeadRepository leads;
     private final ApplicationEventPublisher events;
     private final AuditService audit;
+    private final BillingGate billing;
 
-    public LeadService(LeadRepository leads, ApplicationEventPublisher events, AuditService audit) {
+    public LeadService(LeadRepository leads, ApplicationEventPublisher events,
+                       AuditService audit, BillingGate billing) {
         this.leads = leads;
         this.events = events;
         this.audit = audit;
+        this.billing = billing;
     }
 
+    /**
+     * Create a lead with plan-quota enforcement.
+     *
+     * For UI calls (POST /api/leads) the caller is human, so blocking with
+     * 402 PAYMENT REQUIRED is the right UX. For webhook ingestion we still
+     * accept the lead (we can't drop a customer's WhatsApp message just
+     * because the SME is over quota) but flag it in the audit log so the
+     * owner sees they need to upgrade.
+     */
     @Transactional
     public Lead create(LeadRequest req) {
+        String block = billing.leadQuotaBlockReason();
+        boolean overQuota = block != null;
+        if (overQuota && req.source() != null
+                && (req.source().equalsIgnoreCase("manual") || req.source().equalsIgnoreCase("api"))) {
+            throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED, block);
+        }
         Lead lead = new Lead();
         lead.setName(req.name());
         lead.setPhone(req.phone());
@@ -34,7 +59,13 @@ public class LeadService {
         lead.setMessage(req.message());
         lead.setStatus(LeadStatus.NEW);
         leads.save(lead);
-        audit.record("lead", lead.getId(), "CREATE", "source=" + lead.getSource());
+        if (overQuota) {
+            audit.record("lead", lead.getId(), "OVER_QUOTA", block);
+            log.warn("Tenant {} over quota; accepted webhook lead {}: {}",
+                    lead.getTenantId(), lead.getId(), block);
+        } else {
+            audit.record("lead", lead.getId(), "CREATE", "source=" + lead.getSource());
+        }
         events.publishEvent(new LeadCreatedEvent(lead.getId(), lead.getTenantId()));
         return lead;
     }
@@ -55,6 +86,22 @@ public class LeadService {
         if (status != null) return leads.findAllByTenantIdAndStatus(t, status, pageable);
         if (source != null) return leads.findAllByTenantIdAndSource(t, source, pageable);
         return leads.findAllByTenantId(t, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Lead> listAssignedTo(UUID userId, Pageable pageable) {
+        return leads.findAllByTenantIdAndAssignedToUserId(TenantContext.require(), userId, pageable);
+    }
+
+    @Transactional
+    public Lead assign(UUID leadId, UUID userId) {
+        Lead lead = get(leadId);
+        UUID old = lead.getAssignedToUserId();
+        lead.setAssignedToUserId(userId);
+        audit.record("lead", leadId, "ASSIGN",
+                (old == null ? "unassigned" : old.toString()) + " -> "
+                        + (userId == null ? "unassigned" : userId.toString()));
+        return lead;
     }
 
     @Transactional

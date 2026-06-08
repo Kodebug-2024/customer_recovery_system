@@ -71,3 +71,40 @@ Dump Postgres nightly:
 - [ ] Rotate `JWT_SECRET` and any leaked tokens
 - [ ] Set per-tenant `webhookSecret` so Meta HMAC validation is enforced
 - [ ] Set up offsite backups (S3, Backblaze B2)
+
+## 8. Uptime monitoring
+
+The app exposes Spring Boot Actuator endpoints (no auth required, safe to ping
+from outside):
+
+| URL                                                 | What to monitor for                          |
+| --------------------------------------------------- | -------------------------------------------- |
+| `https://crm.example.com/actuator/health`           | Overall — alert if not 200 / `"status":"UP"` |
+| `https://crm.example.com/actuator/health/db`        | Postgres connectivity                        |
+| `https://crm.example.com/actuator/health/redis`     | Redis connectivity                           |
+| `https://crm.example.com/actuator/health/liveness`  | App alive (used by k8s liveness probe)       |
+| `https://crm.example.com/actuator/health/readiness` | App ready to serve traffic                   |
+
+### Quick setup with BetterStack (free tier: 10 monitors, 30s checks)
+
+1. Create an account at https://betterstack.com/uptime
+2. **New monitor → HTTPS** → URL `https://crm.example.com/actuator/health`
+3. Required string to find: `"status":"UP"`
+4. Check interval: 60 seconds
+5. Add an Alerts channel (email / Slack / SMS).
+6. Repeat for `/actuator/health/db` and `/actuator/health/redis` if you want
+   per-dependency alerts.
+
+### Alternative: UptimeRobot
+
+1. **+ New Monitor → HTTP(s) keyword**
+2. URL `https://crm.example.com/actuator/health`
+3. Keyword: `UP`, "alert when keyword **not exists**"
+4. Monitoring interval: 5 minutes (free tier)
+
+### What "DOWN" means
+
+- 503 from `/actuator/health/db` → Postgres unreachable. Check `docker compose logs postgres`.
+- 503 from `/actuator/health/redis` → Redis unreachable. Rate limit and login lockout will fail-open; the app still works but anti-abuse is degraded.
+- Total connection failure → either Nginx or the `app` container is down.
+  Check `docker compose ps` and `docker compose logs nginx app`.

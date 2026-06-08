@@ -53,6 +53,12 @@ public class User {
     @Column(name = "email_verification_expires_at")
     private Instant emailVerificationExpiresAt;
 
+    @Column(name = "totp_secret_enc")
+    private byte[] totpSecretEnc;
+
+    @Column(name = "totp_enabled", nullable = false)
+    private boolean totpEnabled;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

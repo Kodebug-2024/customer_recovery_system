@@ -27,24 +27,24 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started · ⏭ deferred / out of
 
 ## 🟡 Strongly recommended for launch
 
-| #   | Feature                                      | Status | Notes                                                |
-| --- | -------------------------------------------- | ------ | ---------------------------------------------------- |
+| #   | Feature                                      | Status | Notes                                                                                                                                                                             |
+| --- | -------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 15  | Stripe Billing / subscriptions               | ✅     | `BillingService` (stub + real). `GET/POST /api/billing` + Checkout + Customer Portal + `/webhooks/stripe` with HMAC verify. Set `BILLING_MODE=real` + Stripe keys to enable live. |
-| 16  | Plan-based feature gating                    | ⬜     | Enforce limits (leads/mo, AI replies/mo).            |
-| 17  | Onboarding wizard (3 steps after signup)     | ✅     | `/onboarding` page (WhatsApp → auto-reply → sample lead). Signup redirects here. `POST /api/settings/complete-onboarding` records completion. |
-| 18  | Lead assignment + "assigned to me" filter    | ⬜     | `assigned_to_user_id` FK on leads.                   |
-| 19  | Notes on leads (internal-only)               | ⬜     | `lead_notes` table.                                  |
-| 20  | Tags / labels on leads                       | ⬜     | `lead_tags` many-to-many.                            |
-| 21  | Bulk actions (status change, delete)         | ⬜     | Frontend checkbox column + backend batch endpoints.  |
-| 22  | WhatsApp template message support            | ⬜     | For sends outside 24h window. Required by Meta.      |
-| 23  | Real-time conversation view (SSE or polling) | ⬜     | SSE preferred.                                       |
-| 24  | Full-text search on leads + messages         | ⬜     | Postgres `tsvector` + GIN index.                     |
-| 25  | Dashboard analytics charts                   | ✅     | 3 endpoints under `/api/analytics`. Dashboard shows KPI cards + 30-day line chart + funnel bars + source bars. Built with `recharts`. |
-| 26  | Email template editor (multi-template)       | ⬜     | Variables + per-channel templates.                   |
-| 27  | 2FA (TOTP) for ADMIN/OWNER                   | ⬜     | Use `dev.samstevens.totp` lib.                       |
-| 28  | Audit log filters + export                   | 🟡     | Audit log exists; filter/export UI pending.          |
-| 29  | Outbound webhooks for customer integrations  | ⬜     | `webhook_subscriptions` table + delivery with retry. |
-| 30  | Public REST API + per-user API keys          | ⬜     | Extend `WebhookApiKeyFilter` pattern.                |
+| 16  | Plan-based feature gating                    | ✅     | `BillingGate` + `PlanLimits`. UI/manual creates 402 over quota; webhooks accept + audit. AI requires Pro. Usage bar in /billing.                                                  |
+| 17  | Onboarding wizard (3 steps after signup)     | ✅     | `/onboarding` page (WhatsApp → auto-reply → sample lead). Signup redirects here. `POST /api/settings/complete-onboarding` records completion.                                     |
+| 18  | Lead assignment + "assigned to me" filter    | ✅     | `assigned_to_user_id` FK + `PATCH /api/leads/{id}/assign`. Query params `?mine=true` and `?assignedToUserId`. UI: assignee dropdown on detail; "Mine" toggle on list.             |
+| 19  | Notes on leads (internal-only)               | ⬜     | `lead_notes` table.                                                                                                                                                               |
+| 20  | Tags / labels on leads                       | ⬜     | `lead_tags` many-to-many.                                                                                                                                                         |
+| 21  | Bulk actions (status change, delete)         | ⬜     | Frontend checkbox column + backend batch endpoints.                                                                                                                               |
+| 22  | WhatsApp template message support            | ⬜     | For sends outside 24h window. Required by Meta.                                                                                                                                   |
+| 23  | Real-time conversation view (SSE or polling) | ⬜     | SSE preferred.                                                                                                                                                                    |
+| 24  | Full-text search on leads + messages         | ⬜     | Postgres `tsvector` + GIN index.                                                                                                                                                  |
+| 25  | Dashboard analytics charts                   | ✅     | 3 endpoints under `/api/analytics`. Dashboard shows KPI cards + 30-day line chart + funnel bars + source bars. Built with `recharts`.                                             |
+| 26  | Email template editor (multi-template)       | ⬜     | Variables + per-channel templates.                                                                                                                                                |
+| 27  | 2FA (TOTP) for ADMIN/OWNER                   | ✅     | `dev.samstevens.totp`. `/api/2fa/{enroll,confirm,disable,status}`. Login returns `twoFactorRequired:true` when enabled. Secrets AES-GCM encrypted. QR enrollment in /profile.     |
+| 28  | Audit log filters + export                   | 🟡     | Audit log exists; filter/export UI pending.                                                                                                                                       |
+| 29  | Outbound webhooks for customer integrations  | ⬜     | `webhook_subscriptions` table + delivery with retry.                                                                                                                              |
+| 30  | Public REST API + per-user API keys          | ⬜     | Extend `WebhookApiKeyFilter` pattern.                                                                                                                                             |
 
 ## 🟢 Nice-to-have post-launch
 
@@ -63,26 +63,26 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started · ⏭ deferred / out of
 
 ## 🛠️ Engineering / DevOps before scaling
 
-| #   | Feature                                        | Status | Notes                                                                                     |
-| --- | ---------------------------------------------- | ------ | ----------------------------------------------------------------------------------------- |
-| 41  | CI/CD (GitHub Actions: test → image → deploy)  | ✅     | `.github/workflows/ci.yml` runs Maven tests + Next.js build + Docker builds on PR/push. `release.yml` pushes both images to GHCR on `v*` tag. |
-| 42  | Tenant isolation integration tests             | ✅     | `TenantIsolationIntegrationTest` 13 cases; caught & fixed real cross-tenant leak.         |
-| 43  | DB migration rollback strategy                 | ⬜     | Document + Flyway `undo` (paid) or manual procedure.                                      |
-| 44  | Secrets manager (Doppler / AWS SM / Vault)     | ⬜     | Replace `.env.prod`.                                                                      |
-| 45  | Container image scanning (Trivy in CI)         | ⬜     |                                                                                           |
-| 46  | Dependency vulnerability scanning (Dependabot) | ⬜     | Enable in repo settings.                                                                  |
-| 47  | Staging environment                            | ⬜     | Mirror of prod.                                                                           |
-| 48  | Monitoring (Prometheus + Grafana)              | ⬜     | Actuator metrics already exposed.                                                         |
-| 49  | Uptime monitoring                              | ⬜     | UptimeRobot / BetterStack.                                                                |
-| 50  | Log aggregation (Loki / Papertrail)            | ⬜     |                                                                                           |
-| 51  | DB read replica                                | ⏭     | Only when load demands.                                                                   |
-| 52  | Kafka / RabbitMQ for async events              | ⏭     | Stay on Spring events until scale demands.                                                |
+| #   | Feature                                        | Status | Notes                                                                                                                                           |
+| --- | ---------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 41  | CI/CD (GitHub Actions: test → image → deploy)  | ✅     | `.github/workflows/ci.yml` runs Maven tests + Next.js build + Docker builds on PR/push. `release.yml` pushes both images to GHCR on `v*` tag.   |
+| 42  | Tenant isolation integration tests             | ✅     | `TenantIsolationIntegrationTest` 13 cases; caught & fixed real cross-tenant leak.                                                               |
+| 43  | DB migration rollback strategy                 | ⬜     | Document + Flyway `undo` (paid) or manual procedure.                                                                                            |
+| 44  | Secrets manager (Doppler / AWS SM / Vault)     | ⬜     | Replace `.env.prod`.                                                                                                                            |
+| 45  | Container image scanning (Trivy in CI)         | ⬜     |                                                                                                                                                 |
+| 46  | Dependency vulnerability scanning (Dependabot) | ⬜     | Enable in repo settings.                                                                                                                        |
+| 47  | Staging environment                            | ⬜     | Mirror of prod.                                                                                                                                 |
+| 48  | Monitoring (Prometheus + Grafana)              | ⬜     | Actuator metrics already exposed.                                                                                                               |
+| 49  | Uptime monitoring                              | ✅     | `/actuator/health/{db,redis,liveness,readiness}` exposed publicly. Custom Redis PING indicator. DEPLOY.md adds BetterStack/UptimeRobot recipes. |
+| 50  | Log aggregation (Loki / Papertrail)            | ⬜     |                                                                                                                                                 |
+| 51  | DB read replica                                | ⏭     | Only when load demands.                                                                                                                         |
+| 52  | Kafka / RabbitMQ for async events              | ⏭     | Stay on Spring events until scale demands.                                                                                                      |
 
 ---
 
 ## Recently completed
 
-- **#15 + #17 + #25 + #41 — Billing, onboarding, charts, CI** (2026-06-08): Stripe billing (stub + live), 3-step onboarding wizard auto-launched after signup, dashboard charts (recharts: leads/day line, funnel bars, source horizontal bars), 3 analytics endpoints, GitHub Actions for CI + GHCR releases. New `/billing` and `/onboarding` pages with shadcn UI. 29/29 tests pass.
+- **#16 + #18 + #27 + #49 — Limits, assignment, 2FA, uptime** (2026-06-08): plan-based gating (lead quota + AI gating, billing usage bar in UI), per-user lead assignment (`PATCH /api/leads/{id}/assign`, "Mine" filter, picker on detail page), TOTP 2FA with QR enrollment + login challenge (encrypted at rest), enriched actuator health with per-component endpoints + monitor docs. 29/29 tests pass.
 - **#6 + #7 + #8 — Auth hardening** (2026-06-08): per-user lockout (5 failures → 15-minute lock), per-IP + per-email Redis rate limit on `/auth/login` (default 10/min, returns 429), email verification via signed token sent through SMTP (SES-compatible). New endpoints: `POST /auth/verify-email`, `POST /auth/resend-verification`. New `/verify-email` page in dashboard. `EMAIL_VERIFICATION_REQUIRED` env flag (default off in dev, on in prod). Plus role hierarchy fix — OWNER now satisfies any ADMIN check via `RoleHierarchyImpl`. 26/26 tests pass.
 - **#2 — Self-service signup + shadcn/ui migration** (2026-06-08): `POST /auth/register` creates tenant + OWNER user with JWT (`SignupIntegrationTest` 3/3). Frontend fully migrated to shadcn pattern: Tailwind theme tokens (CSS vars), 10 UI primitives (Button, Input, Label, Card, Badge, Table, Dialog, Select, Checkbox, Textarea), all 8 pages refactored, sidebar uses lucide-react icons. New `/signup` page links from `/login`. 22/22 tests pass.
 - **#4 + #5 — Per-tenant credentials + AES-GCM encryption** (2026-06-08): WhatsApp/Telegram/OpenAI tokens now stored encrypted per tenant. Settings UI lets admins paste credentials (write-only); API returns `*Configured` booleans only. Real integration clients resolve the active tenant's creds per call, falling back to env. 7 new tests (5 cipher, 2 settings isolation). 19/19 tests pass.

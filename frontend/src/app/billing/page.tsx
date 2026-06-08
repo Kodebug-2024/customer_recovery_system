@@ -20,6 +20,9 @@ interface BillingView {
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: string | null;
   live: boolean;
+  leadsUsedThisMonth: number;
+  leadLimitThisMonth: number;
+  aiAllowed: boolean;
 }
 
 interface PlansMap {
@@ -131,6 +134,13 @@ function BillingPage() {
             </CardDescription>
           )}
         </CardHeader>
+        <CardContent>
+          <UsageBar
+            used={b.leadsUsedThisMonth}
+            limit={b.leadLimitThisMonth}
+            label="Leads this month"
+          />
+        </CardContent>
         {b.plan === "PRO" && (
           <CardFooter>
             <Button variant="outline" onClick={manage} disabled={busy}>
@@ -173,6 +183,34 @@ function BillingPage() {
           }
         />
       </div>
+    </div>
+  );
+}
+
+function UsageBar(props: { used: number; limit: number; label: string }) {
+  const pct = Math.min(
+    100,
+    Math.round((props.used / Math.max(1, props.limit)) * 100),
+  );
+  const tone =
+    pct >= 100 ? "bg-destructive" : pct >= 80 ? "bg-amber-500" : "bg-primary";
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-sm">
+        <span className="text-muted-foreground">{props.label}</span>
+        <span className="font-medium">
+          {props.used.toLocaleString()} / {props.limit.toLocaleString()}
+        </span>
+      </div>
+      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+        <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
+      </div>
+      {pct >= 100 && (
+        <p className="text-xs text-destructive">
+          Limit reached. Upgrade to keep capturing leads from API &amp; manual
+          entry.
+        </p>
+      )}
     </div>
   );
 }

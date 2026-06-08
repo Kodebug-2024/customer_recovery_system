@@ -55,7 +55,7 @@ public class SecurityConfig {
             .cors(c -> {})
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
-                .requestMatchers("/auth/**", "/actuator/health", "/error").permitAll()
+                .requestMatchers("/auth/**", "/actuator/health", "/actuator/health/**", "/error").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/webhooks/stripe").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/webhook/whatsapp").permitAll()
                 .requestMatchers("/webhook/**").hasRole("WEBHOOK")

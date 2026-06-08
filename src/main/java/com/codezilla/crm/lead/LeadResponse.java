@@ -11,7 +11,7 @@ public record LeadResponse(
         String source,
         String message,
         LeadStatus status,
-        String assignedTo,
+        UUID assignedToUserId,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -19,6 +19,6 @@ public record LeadResponse(
         return new LeadResponse(
                 l.getId(), l.getName(), l.getPhone(), l.getEmail(),
                 l.getSource(), l.getMessage(), l.getStatus(),
-                l.getAssignedTo(), l.getCreatedAt(), l.getUpdatedAt());
+                l.getAssignedToUserId(), l.getCreatedAt(), l.getUpdatedAt());
     }
 }
