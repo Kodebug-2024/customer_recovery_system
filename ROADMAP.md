@@ -82,6 +82,8 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started · ⏭ deferred / out of
 
 ## Recently completed
 
+- **#6 + #7 + #8 — Auth hardening** (2026-06-08): per-user lockout (5 failures → 15-minute lock), per-IP + per-email Redis rate limit on `/auth/login` (default 10/min, returns 429), email verification via signed token sent through SMTP (SES-compatible). New endpoints: `POST /auth/verify-email`, `POST /auth/resend-verification`. New `/verify-email` page in dashboard. `EMAIL_VERIFICATION_REQUIRED` env flag (default off in dev, on in prod). Plus role hierarchy fix — OWNER now satisfies any ADMIN check via `RoleHierarchyImpl`. 26/26 tests pass.
+- **#2 — Self-service signup + shadcn/ui migration** (2026-06-08): `POST /auth/register` creates tenant + OWNER user with JWT (`SignupIntegrationTest` 3/3). Frontend fully migrated to shadcn pattern: Tailwind theme tokens (CSS vars), 10 UI primitives (Button, Input, Label, Card, Badge, Table, Dialog, Select, Checkbox, Textarea), all 8 pages refactored, sidebar uses lucide-react icons. New `/signup` page links from `/login`. 22/22 tests pass.
 - **#4 + #5 — Per-tenant credentials + AES-GCM encryption** (2026-06-08): WhatsApp/Telegram/OpenAI tokens now stored encrypted per tenant. Settings UI lets admins paste credentials (write-only); API returns `*Configured` booleans only. Real integration clients resolve the active tenant's creds per call, falling back to env. 7 new tests (5 cipher, 2 settings isolation). 19/19 tests pass.
 - **#42 — Tenant isolation tests + isolation hardening** (2026-06-08): 11 MockMvc cases verify A/B isolation across leads, users, settings, audit, messages. Exposed and fixed a real bug — `findAll()` queries weren't tenant-scoped because the `@Filter` interceptor didn't survive into service-layer transactions. Now all queries use explicit `findAllByTenantId*` methods. `LeadService.get()` also adds an explicit tenant check (Hibernate `@Filter` does not apply to find-by-PK).
 - **#1 — User management** (2026-06-08): backend `/api/users` CRUD + role enum + disable + own/admin password change + last-login tracking; frontend `/users` and `/profile` pages.
@@ -91,7 +93,7 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started · ⏭ deferred / out of
 
 ## Next recommended
 
-1. **#2 self-service signup** — needed for demos / sales motion. With per-tenant creds in place, new tenants can fully self-configure.
-2. **#7 + #8 login rate limit + lockout** — minimal anti-abuse before public launch.
-3. **#15 Stripe billing** — once you have a willing first customer.
-4. **#41 CI/CD** — GitHub Actions: test → build image → deploy. Worth setting up before going live.
+1. **#15 Stripe billing** — once you have a willing first customer.
+2. **#41 CI/CD** — GitHub Actions: test → build image → deploy. Worth setting up before going live.
+3. **#17 onboarding wizard** — 3-step setup after signup (connect WhatsApp → set auto-reply → test).
+4. **#25 dashboard analytics charts** — visible product polish for demos.

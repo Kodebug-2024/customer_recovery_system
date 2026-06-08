@@ -49,6 +49,7 @@ management:
       show-details: when_authorized
 
 app:
+  public-base-url: ${PUBLIC_BASE_URL:http://localhost:3000}
   security:
     jwt:
       secret: ${JWT_SECRET:change-me-change-me-change-me-change-me-32+chars}
@@ -58,9 +59,17 @@ app:
       api-key: ${WEBHOOK_API_KEY:dev-webhook-key}
     encryption:
       key: ${APP_ENCRYPTION_KEY:} # base64-encoded 32 bytes; if empty, dev fallback derived from JWT secret (NOT for prod)
+    lockout:
+      max-failed: ${LOGIN_MAX_FAILED:5}
+      duration-minutes: ${LOGIN_LOCK_MINUTES:15}
+    email-verification:
+      required: ${EMAIL_VERIFICATION_REQUIRED:false} # set true in production
+      ttl-hours: ${EMAIL_VERIFICATION_TTL_HOURS:48}
   ratelimit:
     webhook:
       requests-per-minute: 60
+    login:
+      requests-per-minute: ${LOGIN_RPM:10}
 
 integrations:
   whatsapp:

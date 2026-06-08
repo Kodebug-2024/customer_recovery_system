@@ -3,52 +3,82 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { getToken, setToken } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  LayoutDashboard,
+  Users as UsersIcon,
+  Settings as SettingsIcon,
+  ScrollText,
+  Inbox,
+  UserCircle,
+  LogOut,
+} from "lucide-react";
 
 const NAV = [
-  { href: "/", label: "Dashboard" },
-  { href: "/leads", label: "Leads" },
-  { href: "/audit", label: "Audit log" },
-  { href: "/users", label: "Users" },
-  { href: "/settings", label: "Settings" },
-  { href: "/profile", label: "Profile" },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/leads", label: "Leads", icon: Inbox },
+  { href: "/audit", label: "Audit log", icon: ScrollText },
+  { href: "/users", label: "Users", icon: UsersIcon },
+  { href: "/settings", label: "Settings", icon: SettingsIcon },
+  { href: "/profile", label: "Profile", icon: UserCircle },
 ];
+
+const PUBLIC = new Set(["/login", "/signup", "/verify-email"]);
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
-    if (!getToken() && pathname !== "/login") router.replace("/login");
+    if (!getToken() && !PUBLIC.has(pathname)) router.replace("/login");
   }, [pathname, router]);
 
-  if (pathname === "/login") return <>{children}</>;
+  if (PUBLIC.has(pathname)) return <>{children}</>;
 
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-56 bg-slate-900 text-slate-100 p-4 space-y-2">
-        <div className="text-xl font-semibold mb-6">Codezilla CRM</div>
-        {NAV.map((n) => (
-          <Link
-            key={n.href}
-            href={n.href}
-            className={`block px-3 py-2 rounded ${
-              pathname === n.href ? "bg-slate-700" : "hover:bg-slate-800"
-            }`}
+    <div className="min-h-screen flex bg-muted/30">
+      <aside className="w-60 bg-card border-r flex flex-col">
+        <div className="px-6 py-5 border-b">
+          <div className="font-semibold text-lg">Codezilla CRM</div>
+          <div className="text-xs text-muted-foreground">Customer Recovery</div>
+        </div>
+        <nav className="flex-1 px-3 py-4 space-y-1">
+          {NAV.map((n) => {
+            const Icon = n.icon;
+            const active = pathname === n.href;
+            return (
+              <Link
+                key={n.href}
+                href={n.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {n.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="p-3 border-t">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground"
+            onClick={() => {
+              setToken(null);
+              router.replace("/login");
+            }}
           >
-            {n.label}
-          </Link>
-        ))}
-        <button
-          onClick={() => {
-            setToken(null);
-            router.replace("/login");
-          }}
-          className="block w-full text-left px-3 py-2 rounded hover:bg-slate-800 mt-8 text-sm text-slate-300"
-        >
-          Log out
-        </button>
+            <LogOut className="h-4 w-4 mr-2" />
+            Log out
+          </Button>
+        </div>
       </aside>
-      <main className="flex-1 p-8">{children}</main>
+      <main className="flex-1 p-8 overflow-x-auto">{children}</main>
     </div>
   );
 }

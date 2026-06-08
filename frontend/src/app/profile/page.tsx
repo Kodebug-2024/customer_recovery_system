@@ -2,6 +2,17 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { UserView } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function ProfilePage() {
   const [me, setMe] = useState<UserView | null>(null);
@@ -45,67 +56,90 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6 max-w-xl">
-      <h1 className="text-2xl font-semibold">My profile</h1>
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">My profile</h1>
+        <p className="text-muted-foreground text-sm">
+          Your account details and password.
+        </p>
+      </div>
 
       {me && (
-        <div className="bg-white shadow rounded-lg p-4 text-sm space-y-1">
-          <div>
-            <span className="text-slate-500">Email:</span> {me.email}
-          </div>
-          <div>
-            <span className="text-slate-500">Role:</span> {me.role}
-          </div>
-          <div>
-            <span className="text-slate-500">Status:</span>{" "}
-            {me.enabled ? "Active" : "Disabled"}
-          </div>
-          <div>
-            <span className="text-slate-500">Last login:</span>{" "}
-            {me.lastLoginAt ? new Date(me.lastLoginAt).toLocaleString() : "—"}
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Account</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <div className="text-xs text-muted-foreground">Email</div>
+              <div>{me.email}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Role</div>
+              <Badge variant="secondary">{me.role}</Badge>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Status</div>
+              <Badge variant={me.enabled ? "success" : "secondary"}>
+                {me.enabled ? "Active" : "Disabled"}
+              </Badge>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Last login</div>
+              <div>
+                {me.lastLoginAt
+                  ? new Date(me.lastLoginAt).toLocaleString()
+                  : "—"}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <form
-        onSubmit={onChange}
-        className="bg-white shadow rounded-lg p-4 space-y-3"
-      >
-        <h2 className="font-semibold">Change password</h2>
-        <input
-          className="border rounded px-3 py-2 w-full"
-          type="password"
-          placeholder="Current password"
-          value={current}
-          onChange={(e) => setCurrent(e.target.value)}
-          required
-        />
-        <input
-          className="border rounded px-3 py-2 w-full"
-          type="password"
-          placeholder="New password (min 8)"
-          value={next}
-          onChange={(e) => setNext(e.target.value)}
-          required
-          minLength={8}
-        />
-        <input
-          className="border rounded px-3 py-2 w-full"
-          type="password"
-          placeholder="Confirm new password"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          required
-        />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        {notice && <p className="text-green-700 text-sm">{notice}</p>}
-        <button
-          type="submit"
-          className="px-4 py-2 bg-slate-900 text-white rounded text-sm"
-        >
-          Update password
-        </button>
-      </form>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Change password</CardTitle>
+          <CardDescription>Minimum 8 characters.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onChange} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="cur">Current password</Label>
+              <Input
+                id="cur"
+                type="password"
+                value={current}
+                onChange={(e) => setCurrent(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new">New password</Label>
+              <Input
+                id="new"
+                type="password"
+                value={next}
+                onChange={(e) => setNext(e.target.value)}
+                minLength={8}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cnf">Confirm new password</Label>
+              <Input
+                id="cnf"
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                required
+              />
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            {notice && <p className="text-sm text-green-700">{notice}</p>}
+            <Button type="submit">Update password</Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

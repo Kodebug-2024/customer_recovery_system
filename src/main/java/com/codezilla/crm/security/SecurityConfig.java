@@ -2,8 +2,13 @@ package com.codezilla.crm.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -12,14 +17,38 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
+
+    /**
+     * OWNER > ADMIN > AGENT > VIEWER. Higher roles implicitly satisfy any
+     * lower-role check, so a single `@PreAuthorize("hasRole('ADMIN')")` is
+     * satisfied for OWNER too. WEBHOOK is a separate technical role with
+     * no relation to the human role tree.
+     */
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("""
+                ROLE_OWNER > ROLE_ADMIN
+                ROLE_ADMIN > ROLE_AGENT
+                ROLE_AGENT > ROLE_VIEWER
+                """);
+    }
+
+    /** Wires the role hierarchy into @PreAuthorize / @PostAuthorize evaluations. */
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
+        DefaultMethodSecurityExpressionHandler h = new DefaultMethodSecurityExpressionHandler();
+        h.setRoleHierarchy(roleHierarchy);
+        return h;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            JwtAuthFilter jwt,
                                            WebhookApiKeyFilter webhook,
                                            WebhookRateLimitFilter rateLimit,
+                                           LoginRateLimitFilter loginRateLimit,
                                            com.codezilla.crm.webhook.WhatsAppSignatureFilter waSig) throws Exception {
         http
             .csrf(c -> c.disable())
@@ -32,6 +61,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().denyAll())
             .addFilterBefore(rateLimit, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(loginRateLimit, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(webhook, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(waSig, WebhookApiKeyFilter.class)
             .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class);

@@ -2,6 +2,39 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { AuditEvent, PageResp } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+function actionVariant(a: string): BadgeProps["variant"] {
+  switch (a) {
+    case "DELETE":
+    case "DISABLE":
+      return "destructive";
+    case "CREATE":
+    case "ENABLE":
+      return "success";
+    case "STATUS_CHANGE":
+    case "ROLE_CHANGE":
+      return "info";
+    case "PASSWORD_CHANGE":
+    case "PASSWORD_RESET":
+      return "warning";
+    case "IMPORT":
+      return "secondary";
+    default:
+      return "outline";
+  }
+}
 
 export default function AuditPage() {
   const [events, setEvents] = useState<AuditEvent[]>([]);
@@ -25,86 +58,85 @@ export default function AuditPage() {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     load();
   }, [page]);
 
-  function actionColor(a: string) {
-    if (a === "DELETE") return "bg-red-100 text-red-800";
-    if (a === "CREATE") return "bg-green-100 text-green-800";
-    if (a === "STATUS_CHANGE") return "bg-blue-100 text-blue-800";
-    if (a === "IMPORT") return "bg-purple-100 text-purple-800";
-    return "bg-slate-200 text-slate-800";
-  }
-
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Audit log</h1>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-      {loading && <p>Loading…</p>}
-
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-100 text-slate-600">
-            <tr>
-              <th className="text-left p-3">When</th>
-              <th className="text-left p-3">Actor</th>
-              <th className="text-left p-3">Entity</th>
-              <th className="text-left p-3">Action</th>
-              <th className="text-left p-3">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((e) => (
-              <tr key={e.id} className="border-t">
-                <td className="p-3 whitespace-nowrap">
-                  {new Date(e.createdAt).toLocaleString()}
-                </td>
-                <td className="p-3">{e.actor || "—"}</td>
-                <td className="p-3 font-mono text-xs">
-                  {e.entityType}/{e.entityId.slice(0, 8)}
-                </td>
-                <td className="p-3">
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${actionColor(e.action)}`}
-                  >
-                    {e.action}
-                  </span>
-                </td>
-                <td className="p-3 text-slate-600">{e.details || "—"}</td>
-              </tr>
-            ))}
-            {!loading && events.length === 0 && (
-              <tr>
-                <td colSpan={5} className="p-6 text-center text-slate-500">
-                  No audit events yet
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">Audit log</h1>
+        <p className="text-muted-foreground text-sm">
+          Who changed what, and when.
+        </p>
       </div>
 
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <Card className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>When</TableHead>
+              <TableHead>Actor</TableHead>
+              <TableHead>Entity</TableHead>
+              <TableHead>Action</TableHead>
+              <TableHead>Details</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {events.map((e) => (
+              <TableRow key={e.id}>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
+                  {new Date(e.createdAt).toLocaleString()}
+                </TableCell>
+                <TableCell>{e.actor || "—"}</TableCell>
+                <TableCell className="font-mono text-xs">
+                  {e.entityType}/{e.entityId.slice(0, 8)}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={actionVariant(e.action)}>{e.action}</Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {e.details || "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+            {!loading && events.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center text-muted-foreground py-8"
+                >
+                  No audit events yet
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+
       {totalPages > 1 && (
-        <div className="flex justify-between items-center">
-          <button
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
             disabled={page === 0}
             onClick={() => setPage((p) => p - 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
           >
-            Previous
-          </button>
-          <span className="text-sm text-slate-600">
+            <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
             Page {page + 1} of {totalPages}
           </span>
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             disabled={page >= totalPages - 1}
             onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
           >
-            Next
-          </button>
+            Next <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
         </div>
       )}
     </div>

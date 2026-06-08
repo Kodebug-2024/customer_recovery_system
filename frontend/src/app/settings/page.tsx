@@ -2,12 +2,32 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Settings } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+function Status({ on }: { on: boolean }) {
+  return (
+    <Badge variant={on ? "success" : "secondary"}>
+      {on ? "configured" : "not set"}
+    </Badge>
+  );
+}
 
 export default function SettingsPage() {
   const [s, setS] = useState<Settings | null>(null);
   const [secret, setSecret] = useState("");
 
-  // Credentials are write-only from the UI side. Empty string = leave unchanged.
   const [waPhone, setWaPhone] = useState("");
   const [waToken, setWaToken] = useState("");
   const [waVerify, setWaVerify] = useState("");
@@ -34,8 +54,6 @@ export default function SettingsPage() {
     setSaved(false);
     setError(null);
     try {
-      // Send each credential field only if user typed something. Empty = unchanged.
-      // To clear a credential, type a single space then trim — easier UX: explicit "Clear" button below.
       const body: Record<string, unknown> = {
         name: s.name,
         industry: s.industry,
@@ -85,226 +103,251 @@ export default function SettingsPage() {
     }
   }
 
-  if (error) return <p className="text-red-600">{error}</p>;
-  if (!s) return <p>Loading…</p>;
-
-  function Status({ on }: { on: boolean }) {
-    return (
-      <span
-        className={`text-xs px-2 py-0.5 rounded ${on ? "bg-green-100 text-green-800" : "bg-slate-200 text-slate-600"}`}
-      >
-        {on ? "configured" : "not set"}
-      </span>
-    );
-  }
+  if (error) return <p className="text-destructive">{error}</p>;
+  if (!s) return <p className="text-muted-foreground">Loading…</p>;
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <h1 className="text-2xl font-semibold">Settings</h1>
-
-      <section className="bg-white rounded-lg shadow p-6 space-y-4">
-        <h2 className="font-semibold">Business</h2>
-        <div>
-          <label className="block text-sm mb-1">Business name</label>
-          <input
-            value={s.name}
-            onChange={(e) => setS({ ...s, name: e.target.value })}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Industry</label>
-          <input
-            value={s.industry || ""}
-            onChange={(e) => setS({ ...s, industry: e.target.value })}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            id="ai"
-            type="checkbox"
-            checked={s.aiEnabled}
-            onChange={(e) => setS({ ...s, aiEnabled: e.target.checked })}
-          />
-          <label htmlFor="ai" className="text-sm">
-            Enable AI replies (uses OpenAI when configured)
-          </label>
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Auto-reply template</label>
-          <textarea
-            value={s.autoReplyTemplate || ""}
-            onChange={(e) => setS({ ...s, autoReplyTemplate: e.target.value })}
-            className="w-full border rounded px-3 py-2 h-28"
-            placeholder="Hi {{name}}, thanks for contacting us…"
-          />
-          <p className="text-xs text-slate-500 mt-1">
-            Use <code>{"{{name}}"}</code> to insert the lead&apos;s name.
-          </p>
-        </div>
-      </section>
-
-      <section className="bg-white rounded-lg shadow p-6 space-y-4">
-        <h2 className="font-semibold flex items-center gap-2">
-          WhatsApp <Status on={s.whatsappAccessTokenConfigured} />
-        </h2>
-        <p className="text-xs text-slate-500">
-          Per-tenant Meta Cloud API credentials. Stored encrypted (AES-GCM-256).
-          Leave blank to keep existing values.
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground text-sm">
+          Workspace and integration configuration.
         </p>
+      </div>
 
-        <div>
-          <label className="block text-sm mb-1">
-            Phone Number ID{" "}
-            {s.whatsappPhoneNumberId && (
-              <span className="text-xs text-slate-500">
-                (current: {s.whatsappPhoneNumberId})
-              </span>
-            )}
-          </label>
-          <input
-            value={waPhone}
-            onChange={(e) => setWaPhone(e.target.value)}
-            placeholder={s.whatsappPhoneNumberId || "e.g. 1238096609383182"}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1 flex items-center gap-2">
-            Access Token <Status on={s.whatsappAccessTokenConfigured} />
-            {s.whatsappAccessTokenConfigured && (
-              <button
-                onClick={() => clearCredential("whatsappAccessToken")}
-                className="ml-auto text-xs text-red-600 hover:underline"
-              >
-                Clear
-              </button>
-            )}
-          </label>
-          <input
-            type="password"
-            value={waToken}
-            onChange={(e) => setWaToken(e.target.value)}
-            placeholder="EAAOyZ…"
-            className="w-full border rounded px-3 py-2"
-            autoComplete="new-password"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1 flex items-center gap-2">
-            Webhook Verify Token <Status on={s.whatsappVerifyTokenConfigured} />
-            {s.whatsappVerifyTokenConfigured && (
-              <button
-                onClick={() => clearCredential("whatsappVerifyToken")}
-                className="ml-auto text-xs text-red-600 hover:underline"
-              >
-                Clear
-              </button>
-            )}
-          </label>
-          <input
-            type="password"
-            value={waVerify}
-            onChange={(e) => setWaVerify(e.target.value)}
-            placeholder="Any string; must match what you put in Meta dashboard"
-            className="w-full border rounded px-3 py-2"
-            autoComplete="new-password"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1 flex items-center gap-2">
-            Webhook signing secret <Status on={s.webhookSecretConfigured} />
-          </label>
-          <input
-            type="password"
-            value={secret}
-            onChange={(e) => setSecret(e.target.value)}
-            placeholder="Used to validate X-Hub-Signature-256 (optional)"
-            className="w-full border rounded px-3 py-2"
-            autoComplete="new-password"
-          />
-        </div>
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Business</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="biz-name">Business name</Label>
+            <Input
+              id="biz-name"
+              value={s.name}
+              onChange={(e) => setS({ ...s, name: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="biz-ind">Industry</Label>
+            <Input
+              id="biz-ind"
+              value={s.industry || ""}
+              onChange={(e) => setS({ ...s, industry: e.target.value })}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="ai"
+              checked={s.aiEnabled}
+              onCheckedChange={(c) => setS({ ...s, aiEnabled: !!c })}
+            />
+            <Label htmlFor="ai" className="cursor-pointer">
+              Enable AI replies (uses OpenAI when configured)
+            </Label>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tmpl">Auto-reply template</Label>
+            <Textarea
+              id="tmpl"
+              value={s.autoReplyTemplate || ""}
+              onChange={(e) =>
+                setS({ ...s, autoReplyTemplate: e.target.value })
+              }
+              placeholder="Hi {{name}}, thanks for contacting us…"
+              className="h-28"
+            />
+            <p className="text-xs text-muted-foreground">
+              Use <code className="text-foreground">{"{{name}}"}</code> to
+              insert the lead&apos;s name.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
-      <section className="bg-white rounded-lg shadow p-6 space-y-4">
-        <h2 className="font-semibold flex items-center gap-2">
-          Telegram <Status on={s.telegramBotTokenConfigured} />
-        </h2>
-        <div>
-          <label className="block text-sm mb-1 flex items-center gap-2">
-            Bot Token <Status on={s.telegramBotTokenConfigured} />
-            {s.telegramBotTokenConfigured && (
-              <button
-                onClick={() => clearCredential("telegramBotToken")}
-                className="ml-auto text-xs text-red-600 hover:underline"
-              >
-                Clear
-              </button>
-            )}
-          </label>
-          <input
-            type="password"
-            value={tgToken}
-            onChange={(e) => setTgToken(e.target.value)}
-            placeholder="From @BotFather"
-            className="w-full border rounded px-3 py-2"
-            autoComplete="new-password"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1">
-            Notification Chat ID{" "}
-            {s.telegramChatId && (
-              <span className="text-xs text-slate-500">
-                (current: {s.telegramChatId})
-              </span>
-            )}
-          </label>
-          <input
-            value={tgChat}
-            onChange={(e) => setTgChat(e.target.value)}
-            placeholder={s.telegramChatId || "e.g. 123456789"}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            WhatsApp <Status on={s.whatsappAccessTokenConfigured} />
+          </CardTitle>
+          <CardDescription>
+            Per-tenant Meta Cloud API credentials. Stored encrypted
+            (AES-GCM-256). Leave blank to keep existing values.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="wa-phone">
+              Phone Number ID{" "}
+              {s.whatsappPhoneNumberId && (
+                <span className="text-xs text-muted-foreground font-normal">
+                  (current: {s.whatsappPhoneNumberId})
+                </span>
+              )}
+            </Label>
+            <Input
+              id="wa-phone"
+              value={waPhone}
+              onChange={(e) => setWaPhone(e.target.value)}
+              placeholder={s.whatsappPhoneNumberId || "e.g. 1238096609383182"}
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="wa-tok" className="flex items-center gap-2">
+                Access Token <Status on={s.whatsappAccessTokenConfigured} />
+              </Label>
+              {s.whatsappAccessTokenConfigured && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => clearCredential("whatsappAccessToken")}
+                  className="text-destructive h-auto p-0"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <Input
+              id="wa-tok"
+              type="password"
+              autoComplete="new-password"
+              value={waToken}
+              onChange={(e) => setWaToken(e.target.value)}
+              placeholder="EAAOyZ…"
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="wa-vfy" className="flex items-center gap-2">
+                Webhook Verify Token{" "}
+                <Status on={s.whatsappVerifyTokenConfigured} />
+              </Label>
+              {s.whatsappVerifyTokenConfigured && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => clearCredential("whatsappVerifyToken")}
+                  className="text-destructive h-auto p-0"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <Input
+              id="wa-vfy"
+              type="password"
+              autoComplete="new-password"
+              value={waVerify}
+              onChange={(e) => setWaVerify(e.target.value)}
+              placeholder="Any string; must match Meta dashboard"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="wa-sec" className="flex items-center gap-2">
+              Webhook signing secret <Status on={s.webhookSecretConfigured} />
+            </Label>
+            <Input
+              id="wa-sec"
+              type="password"
+              autoComplete="new-password"
+              value={secret}
+              onChange={(e) => setSecret(e.target.value)}
+              placeholder="Used to validate X-Hub-Signature-256 (optional)"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      <section className="bg-white rounded-lg shadow p-6 space-y-4">
-        <h2 className="font-semibold flex items-center gap-2">
-          OpenAI <Status on={s.openaiApiKeyConfigured} />
-        </h2>
-        <div>
-          <label className="block text-sm mb-1 flex items-center gap-2">
-            API Key <Status on={s.openaiApiKeyConfigured} />
-            {s.openaiApiKeyConfigured && (
-              <button
-                onClick={() => clearCredential("openaiApiKey")}
-                className="ml-auto text-xs text-red-600 hover:underline"
-              >
-                Clear
-              </button>
-            )}
-          </label>
-          <input
-            type="password"
-            value={openAi}
-            onChange={(e) => setOpenAi(e.target.value)}
-            placeholder="sk-…"
-            className="w-full border rounded px-3 py-2"
-            autoComplete="new-password"
-          />
-        </div>
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            Telegram <Status on={s.telegramBotTokenConfigured} />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="tg-tok" className="flex items-center gap-2">
+                Bot Token <Status on={s.telegramBotTokenConfigured} />
+              </Label>
+              {s.telegramBotTokenConfigured && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => clearCredential("telegramBotToken")}
+                  className="text-destructive h-auto p-0"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <Input
+              id="tg-tok"
+              type="password"
+              autoComplete="new-password"
+              value={tgToken}
+              onChange={(e) => setTgToken(e.target.value)}
+              placeholder="From @BotFather"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tg-chat">
+              Notification Chat ID{" "}
+              {s.telegramChatId && (
+                <span className="text-xs text-muted-foreground font-normal">
+                  (current: {s.telegramChatId})
+                </span>
+              )}
+            </Label>
+            <Input
+              id="tg-chat"
+              value={tgChat}
+              onChange={(e) => setTgChat(e.target.value)}
+              placeholder={s.telegramChatId || "e.g. 123456789"}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            OpenAI <Status on={s.openaiApiKeyConfigured} />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="oai" className="flex items-center gap-2">
+                API Key <Status on={s.openaiApiKeyConfigured} />
+              </Label>
+              {s.openaiApiKeyConfigured && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => clearCredential("openaiApiKey")}
+                  className="text-destructive h-auto p-0"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <Input
+              id="oai"
+              type="password"
+              autoComplete="new-password"
+              value={openAi}
+              onChange={(e) => setOpenAi(e.target.value)}
+              placeholder="sk-…"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex items-center gap-3">
-        <button
-          onClick={save}
-          className="px-4 py-2 bg-slate-900 text-white rounded"
-        >
-          Save changes
-        </button>
-        {saved && <span className="text-green-600 text-sm">Saved.</span>}
+        <Button onClick={save}>Save changes</Button>
+        {saved && <span className="text-green-700 text-sm">Saved.</span>}
       </div>
     </div>
   );

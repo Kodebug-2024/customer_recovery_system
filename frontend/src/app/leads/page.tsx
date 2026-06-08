@@ -3,9 +3,29 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api, apiDownload, apiUpload } from "@/lib/api";
 import type { Lead, LeadStatus, PageResp } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Download, Upload, Sheet, RefreshCw, Trash2, Eye } from "lucide-react";
 
-const STATUSES: (LeadStatus | "")[] = [
-  "",
+const STATUSES: (LeadStatus | "ALL")[] = [
+  "ALL",
   "NEW",
   "CONTACTED",
   "QUALIFIED",
@@ -13,9 +33,26 @@ const STATUSES: (LeadStatus | "")[] = [
   "LOST",
 ];
 
+function statusVariant(s: LeadStatus): BadgeProps["variant"] {
+  switch (s) {
+    case "NEW":
+      return "info";
+    case "CONTACTED":
+      return "secondary";
+    case "QUALIFIED":
+      return "warning";
+    case "WON":
+      return "success";
+    case "LOST":
+      return "destructive";
+    default:
+      return "outline";
+  }
+}
+
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [status, setStatus] = useState<LeadStatus | "">("");
+  const [status, setStatus] = useState<LeadStatus | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +64,7 @@ export default function LeadsPage() {
     setError(null);
     try {
       const qs = new URLSearchParams({ size: "50", sort: "createdAt,desc" });
-      if (status) qs.set("status", status);
+      if (status !== "ALL") qs.set("status", status);
       const data = await api<PageResp<Lead>>(`/api/leads?${qs}`);
       setLeads(data.content);
     } catch (e) {
@@ -97,43 +134,40 @@ export default function LeadsPage() {
         "/api/leads/sync-sheet",
         { method: "POST" },
       );
-      if (!r.enabled) {
+      if (!r.enabled)
         setNotice(
           `Google Sheets is in stub mode. ${r.rows} rows would be exported. Set SHEETS_MODE=real to enable.`,
         );
-      } else if (r.ok) {
-        setNotice(`Appended ${r.rows} rows to Google Sheet.`);
-      } else {
-        setError("Sheets export failed — check server logs.");
-      }
+      else if (r.ok) setNotice(`Appended ${r.rows} rows to Google Sheet.`);
+      else setError("Sheets export failed — check server logs.");
     } catch (e) {
       setError((e as Error).message);
     }
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Leads</h1>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Leads</h1>
+          <p className="text-muted-foreground text-sm">
+            Inbound leads from all channels.
+          </p>
+        </div>
         <div className="flex gap-2">
-          <button
-            onClick={onExport}
-            className="px-3 py-2 border rounded text-sm"
-          >
-            Export CSV
-          </button>
-          <button
+          <Button variant="outline" size="sm" onClick={onExport}>
+            <Download className="h-4 w-4 mr-2" /> Export
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => fileRef.current?.click()}
-            className="px-3 py-2 border rounded text-sm"
           >
-            Import CSV
-          </button>
-          <button
-            onClick={onSyncSheet}
-            className="px-3 py-2 border rounded text-sm"
-          >
-            Sync to Google Sheet
-          </button>
+            <Upload className="h-4 w-4 mr-2" /> Import
+          </Button>
+          <Button variant="outline" size="sm" onClick={onSyncSheet}>
+            <Sheet className="h-4 w-4 mr-2" /> Sync sheet
+          </Button>
           <input
             ref={fileRef}
             type="file"
@@ -148,91 +182,94 @@ export default function LeadsPage() {
       </div>
 
       <div className="flex gap-3">
-        <select
+        <Select
           value={status}
-          onChange={(e) => setStatus(e.target.value as LeadStatus | "")}
-          className="border rounded px-3 py-2"
+          onValueChange={(v) => setStatus(v as LeadStatus | "ALL")}
         >
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s || "All statuses"}
-            </option>
-          ))}
-        </select>
-        <input
+          <SelectTrigger className="w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s === "ALL" ? "All statuses" : s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search name / phone / email / message"
-          className="border rounded px-3 py-2 flex-1"
+          className="flex-1"
         />
-        <button
-          onClick={load}
-          className="px-4 py-2 bg-slate-900 text-white rounded"
-        >
-          Refresh
-        </button>
+        <Button onClick={load} variant="secondary">
+          <RefreshCw className="h-4 w-4 mr-2" /> Refresh
+        </Button>
       </div>
 
       {notice && (
-        <p className="text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2 text-sm">
+        <div className="text-sm rounded-md border border-green-200 bg-green-50 text-green-800 px-3 py-2">
           {notice}
-        </p>
+        </div>
       )}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-      {loading && <p>Loading…</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-100 text-slate-600">
-            <tr>
-              <th className="text-left p-3">Name</th>
-              <th className="text-left p-3">Phone</th>
-              <th className="text-left p-3">Source</th>
-              <th className="text-left p-3">Status</th>
-              <th className="text-left p-3">Created</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Source</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {filtered.map((l) => (
-              <tr key={l.id} className="border-t">
-                <td className="p-3">{l.name || "—"}</td>
-                <td className="p-3">{l.phone || "—"}</td>
-                <td className="p-3">{l.source}</td>
-                <td className="p-3">
-                  <span className="px-2 py-1 rounded text-xs bg-slate-200">
-                    {l.status}
-                  </span>
-                </td>
-                <td className="p-3">
+              <TableRow key={l.id}>
+                <TableCell className="font-medium">{l.name || "—"}</TableCell>
+                <TableCell>{l.phone || "—"}</TableCell>
+                <TableCell>{l.source}</TableCell>
+                <TableCell>
+                  <Badge variant={statusVariant(l.status)}>{l.status}</Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
                   {new Date(l.createdAt).toLocaleString()}
-                </td>
-                <td className="p-3 text-right space-x-3">
-                  <Link
-                    href={`/leads/${l.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    View
-                  </Link>
-                  <button
-                    onClick={() => onDelete(l.id)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/leads/${l.id}`}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(l.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
             ))}
             {!loading && filtered.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-6 text-center text-slate-500">
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="text-center text-muted-foreground py-8"
+                >
                   No leads
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   );
 }
