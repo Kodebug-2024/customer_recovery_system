@@ -43,6 +43,12 @@ export interface Settings {
   aiEnabled: boolean;
   autoReplyTemplate: string | null;
   webhookSecretConfigured: boolean;
+  whatsappPhoneNumberId: string | null;
+  whatsappAccessTokenConfigured: boolean;
+  whatsappVerifyTokenConfigured: boolean;
+  telegramBotTokenConfigured: boolean;
+  telegramChatId: string | null;
+  openaiApiKeyConfigured: boolean;
 }
 
 export interface AuditEvent {

@@ -35,6 +35,24 @@ public class Tenant {
     @Column(name = "webhook_secret")
     private String webhookSecret;
 
+    @Column(name = "whatsapp_phone_number_id", length = 64)
+    private String whatsappPhoneNumberId;
+
+    @Column(name = "whatsapp_access_token_enc")
+    private byte[] whatsappAccessTokenEnc;
+
+    @Column(name = "whatsapp_verify_token_enc")
+    private byte[] whatsappVerifyTokenEnc;
+
+    @Column(name = "telegram_bot_token_enc")
+    private byte[] telegramBotTokenEnc;
+
+    @Column(name = "telegram_chat_id", length = 64)
+    private String telegramChatId;
+
+    @Column(name = "openai_api_key_enc")
+    private byte[] openaiApiKeyEnc;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

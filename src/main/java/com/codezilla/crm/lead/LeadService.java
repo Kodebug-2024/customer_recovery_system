@@ -41,14 +41,20 @@ public class LeadService {
 
     @Transactional(readOnly = true)
     public Lead get(UUID id) {
-        return leads.findById(id).orElseThrow(() -> new LeadNotFoundException(id));
+        Lead lead = leads.findById(id).orElseThrow(() -> new LeadNotFoundException(id));
+        // Hibernate's @Filter does NOT apply to find-by-PK. Enforce tenant isolation here.
+        if (!lead.getTenantId().equals(TenantContext.require())) {
+            throw new LeadNotFoundException(id);
+        }
+        return lead;
     }
 
     @Transactional(readOnly = true)
     public Page<Lead> list(LeadStatus status, String source, Pageable pageable) {
-        if (status != null) return leads.findAllByStatus(status, pageable);
-        if (source != null) return leads.findAllBySource(source, pageable);
-        return leads.findAll(pageable);
+        UUID t = TenantContext.require();
+        if (status != null) return leads.findAllByTenantIdAndStatus(t, status, pageable);
+        if (source != null) return leads.findAllByTenantIdAndSource(t, source, pageable);
+        return leads.findAllByTenantId(t, pageable);
     }
 
     @Transactional

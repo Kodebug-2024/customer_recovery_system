@@ -2,6 +2,7 @@ package com.codezilla.crm.notification;
 
 import com.codezilla.crm.integration.EmailClient;
 import com.codezilla.crm.integration.TelegramClient;
+import com.codezilla.crm.integration.TenantCredentialResolver;
 import com.codezilla.crm.lead.Lead;
 import com.codezilla.crm.tenant.Tenant;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,16 +13,16 @@ public class NotificationService {
 
     private final TelegramClient telegram;
     private final EmailClient email;
-    private final String defaultChatId;
+    private final TenantCredentialResolver creds;
     private final String ownerEmail;
 
     public NotificationService(TelegramClient telegram,
                                EmailClient email,
-                               @Value("${integrations.telegram.default-chat-id:}") String defaultChatId,
+                               TenantCredentialResolver creds,
                                @Value("${integrations.email.owner:}") String ownerEmail) {
         this.telegram = telegram;
         this.email = email;
-        this.defaultChatId = defaultChatId;
+        this.creds = creds;
         this.ownerEmail = ownerEmail;
     }
 
@@ -39,8 +40,9 @@ public class NotificationService {
                 nullSafe(lead.getSource()),
                 nullSafe(lead.getMessage()));
 
-        if (defaultChatId != null && !defaultChatId.isBlank()) {
-            telegram.sendMessage(defaultChatId, text);
+        String chatId = creds.telegram().chatId();
+        if (chatId != null && !chatId.isBlank()) {
+            telegram.sendMessage(chatId, text);
         }
         if (ownerEmail != null && !ownerEmail.isBlank()) {
             email.send(ownerEmail, "New lead: " + nullSafe(lead.getName()), text);

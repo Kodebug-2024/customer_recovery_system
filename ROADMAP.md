@@ -82,6 +82,8 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started · ⏭ deferred / out of
 
 ## Recently completed
 
+- **#4 + #5 — Per-tenant credentials + AES-GCM encryption** (2026-06-08): WhatsApp/Telegram/OpenAI tokens now stored encrypted per tenant. Settings UI lets admins paste credentials (write-only); API returns `*Configured` booleans only. Real integration clients resolve the active tenant's creds per call, falling back to env. 7 new tests (5 cipher, 2 settings isolation). 19/19 tests pass.
+- **#42 — Tenant isolation tests + isolation hardening** (2026-06-08): 11 MockMvc cases verify A/B isolation across leads, users, settings, audit, messages. Exposed and fixed a real bug — `findAll()` queries weren't tenant-scoped because the `@Filter` interceptor didn't survive into service-layer transactions. Now all queries use explicit `findAllByTenantId*` methods. `LeadService.get()` also adds an explicit tenant check (Hibernate `@Filter` does not apply to find-by-PK).
 - **#1 — User management** (2026-06-08): backend `/api/users` CRUD + role enum + disable + own/admin password change + last-login tracking; frontend `/users` and `/profile` pages.
 - **Phase 3** (2026-06-04): Meta inbound adapter, audit log + soft delete, CSV import/export, SMTP email, Google Sheets export, Nginx prod compose + Let's Encrypt.
 - **Phase 2**: webhook rate limit, WhatsApp signature verification, settings API, stats API, reply endpoint, Next.js dashboard.
@@ -89,8 +91,7 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started · ⏭ deferred / out of
 
 ## Next recommended
 
-1. **#42 tenant isolation integration test** — one bug here is company-ending. Do this _before_ any production traffic.
-2. **#4 + #5 per-tenant credentials + secrets encryption** — unblocks onboarding customer #2.
-3. **#2 self-service signup** — needed for demos / sales motion.
-4. **#7 + #8 login rate limit + lockout** — minimal anti-abuse before public launch.
-5. **#15 Stripe billing** — once you have a willing first customer.
+1. **#2 self-service signup** — needed for demos / sales motion. With per-tenant creds in place, new tenants can fully self-configure.
+2. **#7 + #8 login rate limit + lockout** — minimal anti-abuse before public launch.
+3. **#15 Stripe billing** — once you have a willing first customer.
+4. **#41 CI/CD** — GitHub Actions: test → build image → deploy. Worth setting up before going live.

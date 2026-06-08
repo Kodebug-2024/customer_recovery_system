@@ -39,7 +39,7 @@ public class LeadCsvController {
         res.setHeader("Content-Disposition", "attachment; filename=\"leads.csv\"");
         try (PrintWriter w = res.getWriter()) {
             w.println(String.join(",", HEADERS));
-            for (Lead l : repo.findAll()) {
+            for (Lead l : repo.findAllByTenantId(com.codezilla.crm.tenant.TenantContext.require())) {
                 w.println(String.join(",",
                         csv(l.getId().toString()),
                         csv(l.getName()),

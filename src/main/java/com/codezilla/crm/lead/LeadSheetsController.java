@@ -23,7 +23,7 @@ public class LeadSheetsController {
 
     @PostMapping("/sync-sheet")
     public Map<String, Object> sync() {
-        var all = repo.findAll();
+        var all = repo.findAllByTenantId(com.codezilla.crm.tenant.TenantContext.require());
         boolean ok = exporter.appendLeads(all);
         return Map.of("enabled", exporter.isEnabled(), "rows", all.size(), "ok", ok);
     }

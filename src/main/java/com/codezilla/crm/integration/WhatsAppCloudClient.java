@@ -17,25 +17,28 @@ public class WhatsAppCloudClient implements WhatsAppClient {
     private static final Logger log = LoggerFactory.getLogger(WhatsAppCloudClient.class);
 
     private final WebClient client;
-    private final String phoneNumberId;
+    private final TenantCredentialResolver creds;
 
     public WhatsAppCloudClient(WebClient.Builder builder,
                                @Value("${integrations.whatsapp.base-url}") String baseUrl,
-                               @Value("${integrations.whatsapp.access-token}") String token,
-                               @Value("${integrations.whatsapp.phone-number-id}") String phoneNumberId) {
-        this.phoneNumberId = phoneNumberId;
-        this.client = builder.baseUrl(baseUrl)
-                .defaultHeader("Authorization", "Bearer " + token)
-                .build();
+                               TenantCredentialResolver creds) {
+        this.creds = creds;
+        this.client = builder.baseUrl(baseUrl).build();
     }
 
     @Override
     public void sendText(String toPhone, String body) {
-        // Meta requires E.164 digits only — strip leading '+' and any spaces.
+        var c = creds.whatsapp();
+        if (c.accessToken() == null || c.accessToken().isBlank()
+                || c.phoneNumberId() == null || c.phoneNumberId().isBlank()) {
+            log.warn("WhatsApp send skipped: no credentials configured for current tenant.");
+            return;
+        }
         String to = toPhone == null ? null : toPhone.replaceAll("[^0-9]", "");
         try {
             String response = client.post()
-                    .uri("/{id}/messages", phoneNumberId)
+                    .uri("/{id}/messages", c.phoneNumberId())
+                    .header("Authorization", "Bearer " + c.accessToken())
                     .bodyValue(Map.of(
                             "messaging_product", "whatsapp",
                             "recipient_type", "individual",

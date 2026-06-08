@@ -39,6 +39,7 @@ services:
       REDIS_HOST: redis
       JWT_SECRET: ${JWT_SECRET:-change-me-change-me-change-me-change-me-32+chars}
       WEBHOOK_API_KEY: ${WEBHOOK_API_KEY:-dev-webhook-key}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}
       WHATSAPP_MODE: ${WHATSAPP_MODE:-stub}
       WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
       WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}

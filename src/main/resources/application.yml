@@ -12,7 +12,7 @@ spring:
       hibernate:
         jdbc.time_zone: UTC
         format_sql: false
-    open-in-view: false
+    open-in-view: true # required for TenantFilterInterceptor to activate the @Filter on the session that service-layer @Transactional methods join
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -56,6 +56,8 @@ app:
       ttl-minutes: 240
     webhook:
       api-key: ${WEBHOOK_API_KEY:dev-webhook-key}
+    encryption:
+      key: ${APP_ENCRYPTION_KEY:} # base64-encoded 32 bytes; if empty, dev fallback derived from JWT secret (NOT for prod)
   ratelimit:
     webhook:
       requests-per-minute: 60

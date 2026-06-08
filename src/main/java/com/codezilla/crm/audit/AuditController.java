@@ -25,9 +25,10 @@ public class AuditController {
     public Page<AuditEvent> list(@RequestParam(required = false) String entityType,
                                  @RequestParam(required = false) UUID entityId,
                                  Pageable pageable) {
+        UUID t = com.codezilla.crm.tenant.TenantContext.require();
         if (entityType != null && entityId != null) {
-            return repo.findAllByEntityTypeAndEntityIdOrderByCreatedAtDesc(entityType, entityId, pageable);
+            return repo.findAllByTenantIdAndEntityTypeAndEntityIdOrderByCreatedAtDesc(t, entityType, entityId, pageable);
         }
-        return repo.findAllByOrderByCreatedAtDesc(pageable);
+        return repo.findAllByTenantIdOrderByCreatedAtDesc(t, pageable);
     }
 }

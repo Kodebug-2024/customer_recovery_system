@@ -6,5 +6,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface MessageRepository extends JpaRepository<Message, UUID> {
-    List<Message> findAllByLeadIdOrderByCreatedAtAsc(UUID leadId);
+    List<Message> findAllByTenantIdAndLeadIdOrderByCreatedAtAsc(UUID tenantId, UUID leadId);
 }

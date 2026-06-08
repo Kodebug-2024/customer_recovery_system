@@ -1,5 +1,6 @@
 package com.codezilla.crm.message;
 
+import com.codezilla.crm.tenant.TenantContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,6 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     public List<Message> conversation(UUID leadId) {
-        return repo.findAllByLeadIdOrderByCreatedAtAsc(leadId);
+        return repo.findAllByTenantIdAndLeadIdOrderByCreatedAtAsc(TenantContext.require(), leadId);
     }
 }
