@@ -89,6 +89,15 @@ public class LeadService {
     }
 
     @Transactional(readOnly = true)
+    public Page<Lead> search(String query, Pageable pageable) {
+        if (query == null || query.isBlank()) {
+            return leads.findAllByTenantId(TenantContext.require(), pageable);
+        }
+        String pattern = "%" + query.toLowerCase().trim() + "%";
+        return leads.search(TenantContext.require(), pattern, pageable);
+    }
+
+    @Transactional(readOnly = true)
     public Page<Lead> listAssignedTo(UUID userId, Pageable pageable) {
         return leads.findAllByTenantIdAndAssignedToUserId(TenantContext.require(), userId, pageable);
     }

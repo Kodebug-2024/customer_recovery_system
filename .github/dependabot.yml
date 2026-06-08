@@ -1,0 +1,45 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "maven"]
+    groups:
+      spring-boot:
+        patterns: ["org.springframework.boot:*"]
+      stripe:
+        patterns: ["com.stripe:*"]
+      google-apis:
+        patterns: ["com.google.*"]
+
+  - package-ecosystem: npm
+    directory: "/frontend"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "npm"]
+    groups:
+      next:
+        patterns: ["next", "@next/*", "react", "react-dom", "@types/react*"]
+      radix:
+        patterns: ["@radix-ui/*"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels: ["dependencies", "actions"]
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: docker
+    directory: "/frontend"
+    schedule:
+      interval: monthly
+    labels: ["dependencies", "docker"]

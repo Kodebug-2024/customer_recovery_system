@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -58,6 +59,7 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function load() {
@@ -67,6 +69,7 @@ export default function LeadsPage() {
       const qs = new URLSearchParams({ size: "50", sort: "createdAt,desc" });
       if (status !== "ALL") qs.set("status", status);
       if (mine) qs.set("mine", "true");
+      if (search.trim()) qs.set("q", search.trim());
       const data = await api<PageResp<Lead>>(`/api/leads?${qs}`);
       setLeads(data.content);
     } catch (e) {
@@ -77,19 +80,13 @@ export default function LeadsPage() {
   }
 
   useEffect(() => {
-    load();
-  }, [status, mine]);
+    // Debounce search keystrokes; reload immediately on filter changes.
+    const handle = setTimeout(load, 250);
+    return () => clearTimeout(handle);
+  }, [status, mine, search]);
 
-  const filtered = leads.filter((l) => {
-    if (!search) return true;
-    const s = search.toLowerCase();
-    return (
-      (l.name && l.name.toLowerCase().includes(s)) ||
-      (l.phone && l.phone.toLowerCase().includes(s)) ||
-      (l.email && l.email.toLowerCase().includes(s)) ||
-      (l.message && l.message.toLowerCase().includes(s))
-    );
-  });
+  // No client-side filter — the server now does it.
+  const filtered = leads;
 
   async function onDelete(id: string) {
     if (!confirm("Delete this lead? This cannot be undone from the UI."))
@@ -125,6 +122,54 @@ export default function LeadsPage() {
       setError((e as Error).message);
     } finally {
       if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllVisible(visible: Lead[], on: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      visible.forEach((l) => (on ? next.add(l.id) : next.delete(l.id)));
+      return next;
+    });
+  }
+
+  async function bulkDelete() {
+    if (selected.size === 0) return;
+    if (!confirm(`Delete ${selected.size} lead(s)?`)) return;
+    try {
+      const r = await api<{ updated: number }>(`/api/leads/bulk-delete`, {
+        method: "POST",
+        body: JSON.stringify({ ids: Array.from(selected) }),
+      });
+      setNotice(`Deleted ${r.updated} lead(s).`);
+      setSelected(new Set());
+      load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
+  async function bulkStatus(status: LeadStatus) {
+    if (selected.size === 0) return;
+    try {
+      const r = await api<{ updated: number }>(`/api/leads/bulk-status`, {
+        method: "POST",
+        body: JSON.stringify({ ids: Array.from(selected), status }),
+      });
+      setNotice(`Updated ${r.updated} lead(s) to ${status}.`);
+      setSelected(new Set());
+      load();
+    } catch (e) {
+      setError((e as Error).message);
     }
   }
 
@@ -224,10 +269,51 @@ export default function LeadsPage() {
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 rounded-md border bg-card px-3 py-2 text-sm">
+          <span className="font-medium">{selected.size} selected</span>
+          <Select onValueChange={(v) => bulkStatus(v as LeadStatus)}>
+            <SelectTrigger className="h-8 w-44">
+              <SelectValue placeholder="Set status…" />
+            </SelectTrigger>
+            <SelectContent>
+              {(
+                ["NEW", "CONTACTED", "QUALIFIED", "WON", "LOST"] as LeadStatus[]
+              ).map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="destructive" size="sm" onClick={bulkDelete}>
+            <Trash2 className="h-4 w-4 mr-2" /> Delete
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelected(new Set())}
+            className="ml-auto"
+          >
+            Clear
+          </Button>
+        </div>
+      )}
+
       <Card className="p-0">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={
+                    filtered.length > 0 &&
+                    filtered.every((l) => selected.has(l.id))
+                  }
+                  onCheckedChange={(c) => toggleAllVisible(filtered, !!c)}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Source</TableHead>
@@ -238,7 +324,17 @@ export default function LeadsPage() {
           </TableHeader>
           <TableBody>
             {filtered.map((l) => (
-              <TableRow key={l.id}>
+              <TableRow
+                key={l.id}
+                data-state={selected.has(l.id) ? "selected" : undefined}
+              >
+                <TableCell>
+                  <Checkbox
+                    checked={selected.has(l.id)}
+                    onCheckedChange={() => toggleOne(l.id)}
+                    aria-label={`Select ${l.name || l.id}`}
+                  />
+                </TableCell>
                 <TableCell className="font-medium">{l.name || "—"}</TableCell>
                 <TableCell>{l.phone || "—"}</TableCell>
                 <TableCell>{l.source}</TableCell>
@@ -269,7 +365,7 @@ export default function LeadsPage() {
             {!loading && filtered.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="text-center text-muted-foreground py-8"
                 >
                   No leads
