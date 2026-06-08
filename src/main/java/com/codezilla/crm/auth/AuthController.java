@@ -31,10 +31,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        User user = users.findByEmail(req.email()).orElse(null);
+        User user = users.findByEmail(req.email() == null ? null : req.email().toLowerCase()).orElse(null);
         if (user == null || !encoder.matches(req.password(), user.getPasswordHash())) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
+        if (!user.isEnabled()) {
+            return ResponseEntity.status(403).body(Map.of("error", "Account disabled"));
+        }
+        user.setLastLoginAt(java.time.Instant.now());
+        users.save(user);
         String token = jwt.issue(user.getId(), user.getTenantId(), user.getEmail(), user.getRole());
         return ResponseEntity.ok(Map.of(
                 "token", token,

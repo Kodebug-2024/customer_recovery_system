@@ -54,3 +54,15 @@ export interface AuditEvent {
   details: string | null;
   createdAt: string;
 }
+
+export type UserRole = "OWNER" | "ADMIN" | "AGENT" | "VIEWER";
+
+export interface UserView {
+  id: string;
+  name: string | null;
+  email: string;
+  role: UserRole;
+  enabled: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+}

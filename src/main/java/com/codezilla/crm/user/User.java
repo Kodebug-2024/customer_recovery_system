@@ -20,6 +20,9 @@ public class User {
     @Column(name = "tenant_id", nullable = false, updatable = false)
     private UUID tenantId;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "email", nullable = false)
     private String email;
 
@@ -28,6 +31,12 @@ public class User {
 
     @Column(name = "role", nullable = false)
     private String role;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
+
+    @Column(name = "last_login_at")
+    private Instant lastLoginAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

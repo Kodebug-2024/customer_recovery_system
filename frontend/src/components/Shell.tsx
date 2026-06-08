@@ -8,7 +8,9 @@ const NAV = [
   { href: "/", label: "Dashboard" },
   { href: "/leads", label: "Leads" },
   { href: "/audit", label: "Audit log" },
+  { href: "/users", label: "Users" },
   { href: "/settings", label: "Settings" },
+  { href: "/profile", label: "Profile" },
 ];
 
 export default function Shell({ children }: { children: React.ReactNode }) {
