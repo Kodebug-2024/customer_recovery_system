@@ -32,6 +32,9 @@ public class Tenant {
     @Column(name = "auto_reply_template", columnDefinition = "text")
     private String autoReplyTemplate;
 
+    @Column(name = "webhook_secret")
+    private String webhookSecret;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface LeadRepository extends JpaRepository<Lead, UUID> {
     Page<Lead> findAllByStatus(LeadStatus status, Pageable pageable);
     Page<Lead> findAllBySource(String source, Pageable pageable);
+    long countByStatus(LeadStatus status);
 }

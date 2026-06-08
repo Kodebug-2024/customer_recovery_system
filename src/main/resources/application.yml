@@ -22,6 +22,17 @@ spring:
       port: ${REDIS_PORT:6379}
   jackson:
     default-property-inclusion: non_null
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 server:
   port: ${PORT:8080}
@@ -51,10 +62,11 @@ app:
 
 integrations:
   whatsapp:
-    mode: ${WHATSAPP_MODE:stub}        # stub | real
+    mode: ${WHATSAPP_MODE:stub} # stub | real
     base-url: https://graph.facebook.com/v19.0
     phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
     access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    verify-token: ${WHATSAPP_VERIFY_TOKEN:}
   telegram:
     mode: ${TELEGRAM_MODE:stub}
     base-url: https://api.telegram.org
@@ -65,6 +77,15 @@ integrations:
     base-url: https://api.openai.com/v1
     api-key: ${OPENAI_API_KEY:}
     model: gpt-4o-mini
+  email:
+    mode: ${EMAIL_MODE:stub} # stub | real
+    from: ${EMAIL_FROM:no-reply@example.com}
+    owner: ${EMAIL_OWNER:}
+  sheets:
+    mode: ${SHEETS_MODE:stub} # stub | real
+    spreadsheet-id: ${SHEETS_SPREADSHEET_ID:}
+    range: ${SHEETS_RANGE:Sheet1!A:H}
+    credentials-json: ${SHEETS_CREDENTIALS_JSON:}
 
 logging:
   level:

@@ -42,4 +42,11 @@ public class LeadController {
     public LeadResponse updateStatus(@PathVariable UUID id, @RequestBody StatusUpdate body) {
         return LeadResponse.from(service.updateStatus(id, body.status()));
     }
+
+    @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.softDelete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

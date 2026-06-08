@@ -5,12 +5,16 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.SQLRestriction;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "leads")
 @Getter
 @Setter
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
+@SQLRestriction("deleted_at IS NULL")
 public class Lead extends TenantAwareEntity {
 
     @Column(name = "name")
@@ -34,4 +38,7 @@ public class Lead extends TenantAwareEntity {
 
     @Column(name = "assigned_to", length = 100)
     private String assignedTo;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 }

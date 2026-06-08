@@ -31,4 +31,4 @@ app:
 integrations:
   whatsapp: { mode: stub }
   telegram: { mode: stub }
-  openai:   { mode: stub }
+  openai: { mode: stub }

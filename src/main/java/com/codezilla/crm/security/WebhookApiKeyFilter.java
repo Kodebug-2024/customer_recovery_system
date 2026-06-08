@@ -32,7 +32,9 @@ public class WebhookApiKeyFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/webhook/");
+        if (!request.getRequestURI().startsWith("/webhook/")) return true;
+        // Meta verification handshake has no API key.
+        return "GET".equalsIgnoreCase(request.getMethod()) && "/webhook/whatsapp".equals(request.getRequestURI());
     }
 
     @Override
