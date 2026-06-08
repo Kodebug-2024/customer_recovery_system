@@ -72,7 +72,46 @@ Dump Postgres nightly:
 - [ ] Set per-tenant `webhookSecret` so Meta HMAC validation is enforced
 - [ ] Set up offsite backups (S3, Backblaze B2)
 
-## 8. Uptime monitoring
+## 8. Secrets management
+
+The container ships with `deploy/scripts/entrypoint.sh` that optionally pulls
+secrets from an external manager _before_ the JVM starts. Selection via
+`SECRETS_PROVIDER`:
+
+| Value            | Required env                                                          | Notes                                                                                             |
+| ---------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| (unset) / `none` | —                                                                     | Use plain env vars set by compose / k8s. No-op.                                                   |
+| `doppler`        | `DOPPLER_TOKEN`                                                       | `doppler secrets download` populates the env. Add `doppler` CLI to the image to enable.           |
+| `aws-secrets`    | `AWS_REGION`, `AWS_SECRETS_NAMES` (comma-separated JSON secret names) | Uses IAM role on EC2/ECS/EKS. Each secret is a JSON object of `KEY:VALUE`.                        |
+| `vault`          | `VAULT_ADDR`, `VAULT_TOKEN`, `VAULT_SECRET_PATH` (KV v2)              | Path like `secret/data/crm/prod`.                                                                 |
+| `sops-file`      | mount `/run/secrets/secrets.enc.env`                                  | Decrypted in-place with `sops`. Best for git-ops workflows with age/PGP. Add `sops` to the image. |
+
+Recommended for small teams: **SOPS + age**. Encrypted file lives in your
+repo, decrypted in-container at start, no extra infrastructure.
+
+```bash
+brew install sops age
+age-keygen -o ~/.config/sops/age/keys.txt
+sops -e --age "$(grep public ~/.config/sops/age/keys.txt | cut -d' ' -f4)" secrets.env > secrets.enc.env
+# Commit secrets.enc.env. Never commit secrets.env.
+```
+
+In compose:
+
+```yaml
+services:
+  app:
+    environment:
+      SECRETS_PROVIDER: sops-file
+    secrets:
+      - source: secrets-enc
+        target: secrets.enc.env
+secrets:
+  secrets-enc:
+    file: ./secrets.enc.env
+```
+
+## 9. Uptime monitoring
 
 The app exposes Spring Boot Actuator endpoints (no auth required, safe to ping
 from outside):

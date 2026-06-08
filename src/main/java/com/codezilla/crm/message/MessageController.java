@@ -40,6 +40,10 @@ public class MessageController {
     }
 
     public record ReplyRequest(@NotBlank String content, String channel) {}
+    public record TemplateRequest(
+            @NotBlank String templateName,
+            String languageCode,
+            java.util.List<String> parameters) {}
 
     @GetMapping
     public List<MessageView> list(@PathVariable UUID leadId) {
@@ -52,6 +56,19 @@ public class MessageController {
         Lead lead = leads.get(leadId);
         String channel = body.channel() == null || body.channel().isBlank() ? "whatsapp" : body.channel();
         messaging.sendText(lead, body.content(), channel);
+        var conv = service.conversation(leadId);
+        return MessageView.from(conv.get(conv.size() - 1));
+    }
+
+    /**
+     * Send a pre-approved WhatsApp template. Required by Meta when the lead's
+     * 24h customer-service window has expired.
+     */
+    @PostMapping("/template")
+    public MessageView sendTemplate(@PathVariable UUID leadId,
+                                    @jakarta.validation.Valid @RequestBody TemplateRequest body) {
+        Lead lead = leads.get(leadId);
+        messaging.sendWhatsAppTemplate(lead, body.templateName(), body.languageCode(), body.parameters());
         var conv = service.conversation(leadId);
         return MessageView.from(conv.get(conv.size() - 1));
     }

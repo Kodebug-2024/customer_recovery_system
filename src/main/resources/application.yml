@@ -76,11 +76,16 @@ app:
     email-verification:
       required: ${EMAIL_VERIFICATION_REQUIRED:false} # set true in production
       ttl-hours: ${EMAIL_VERIFICATION_TTL_HOURS:48}
+    password-reset:
+      ttl-minutes: ${PASSWORD_RESET_TTL_MINUTES:60}
   ratelimit:
     webhook:
       requests-per-minute: 60
     login:
       requests-per-minute: ${LOGIN_RPM:10}
+  retention:
+    deleted-leads-days: ${RETENTION_DELETED_LEADS_DAYS:30}
+    cron: ${RETENTION_CRON:0 15 * * * *}
 
 billing:
   mode: ${BILLING_MODE:stub} # stub | real

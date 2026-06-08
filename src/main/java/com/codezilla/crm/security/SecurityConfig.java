@@ -49,6 +49,7 @@ public class SecurityConfig {
                                            WebhookApiKeyFilter webhook,
                                            WebhookRateLimitFilter rateLimit,
                                            LoginRateLimitFilter loginRateLimit,
+                                           com.codezilla.crm.apikey.ApiKeyAuthFilter apiKeyAuth,
                                            com.codezilla.crm.webhook.WhatsAppSignatureFilter waSig) throws Exception {
         http
             .csrf(c -> c.disable())
@@ -61,11 +62,13 @@ public class SecurityConfig {
                 .requestMatchers("/book/**").permitAll()
                 .requestMatchers("/webhook/**").hasRole("WEBHOOK")
                 .requestMatchers("/api/**").authenticated()
+                .requestMatchers("/v1/**").authenticated()
                 .anyRequest().denyAll())
             .addFilterBefore(rateLimit, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(loginRateLimit, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(webhook, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(waSig, WebhookApiKeyFilter.class)
+            .addFilterBefore(apiKeyAuth, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

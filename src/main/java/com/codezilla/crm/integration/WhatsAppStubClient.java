@@ -23,6 +23,13 @@ public class WhatsAppStubClient implements WhatsAppClient {
         log.info("STUB {}", entry);
     }
 
+    @Override
+    public void sendTemplate(String toPhone, String templateName, String languageCode, List<String> parameters) {
+        String entry = "[whatsapp template] -> " + toPhone + " :: " + templateName + " (" + languageCode + ") " + parameters;
+        outbox.add(entry);
+        log.info("STUB {}", entry);
+    }
+
     public List<String> outbox() {
         return List.copyOf(outbox);
     }

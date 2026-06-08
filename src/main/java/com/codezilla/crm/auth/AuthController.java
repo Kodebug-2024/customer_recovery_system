@@ -32,6 +32,7 @@ public class AuthController {
     private final JwtService jwt;
     private final EmailVerificationService verifications;
     private final TwoFactorService twoFactor;
+    private final PasswordResetService passwordReset;
 
     private final int maxFailedLogins;
     private final Duration lockDuration;
@@ -41,6 +42,7 @@ public class AuthController {
                           PasswordEncoder encoder, JwtService jwt,
                           EmailVerificationService verifications,
                           TwoFactorService twoFactor,
+                          PasswordResetService passwordReset,
                           @Value("${app.security.lockout.max-failed:5}") int maxFailedLogins,
                           @Value("${app.security.lockout.duration-minutes:15}") long lockMinutes,
                           @Value("${app.security.email-verification.required:false}") boolean requireEmailVerification) {
@@ -50,6 +52,7 @@ public class AuthController {
         this.jwt = jwt;
         this.verifications = verifications;
         this.twoFactor = twoFactor;
+        this.passwordReset = passwordReset;
         this.maxFailedLogins = maxFailedLogins;
         this.lockDuration = Duration.ofMinutes(lockMinutes);
         this.requireEmailVerification = requireEmailVerification;
@@ -170,6 +173,27 @@ public class AuthController {
             if (u.getEmailVerifiedAt() == null) verifications.issueAndSend(u);
         });
         return ResponseEntity.accepted().body(Map.of("ok", true));
+    }
+
+    public record ForgotRequest(@NotBlank String email) {}
+    public record ResetRequest(@NotBlank String token, @NotBlank @Size(min = 8) String password) {}
+
+    /**
+     * Forgot password — emails a reset link if the address is registered.
+     * Always returns 202 to prevent email enumeration.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotRequest req) {
+        passwordReset.issueAndSend(req.email());
+        return ResponseEntity.accepted().body(Map.of("ok", true));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetRequest req) {
+        if (!passwordReset.consume(req.token(), req.password())) {
+            return ResponseEntity.status(400).body(Map.of("error", "Invalid or expired token"));
+        }
+        return ResponseEntity.ok(Map.of("ok", true));
     }
 
     private Map<String, Object> tokenResponse(User user) {

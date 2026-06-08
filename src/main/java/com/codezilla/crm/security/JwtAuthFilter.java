@@ -27,6 +27,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         this.jwt = jwt;
     }
 
+    /** /v1/** uses API keys (see ApiKeyAuthFilter), so skip JWT parsing there
+     *  — otherwise an API-key Bearer token would be rejected as a malformed
+     *  JWT and clear the auth context the API-key filter just set. */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/v1/");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {

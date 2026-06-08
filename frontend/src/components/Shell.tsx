@@ -15,6 +15,7 @@ import {
   LogOut,
   CreditCard,
   BookOpen,
+  Mail,
 } from "lucide-react";
 
 const NAV = [
@@ -23,12 +24,19 @@ const NAV = [
   { href: "/audit", label: "Audit log", icon: ScrollText },
   { href: "/users", label: "Users", icon: UsersIcon },
   { href: "/knowledge", label: "Knowledge", icon: BookOpen },
+  { href: "/templates", label: "Templates", icon: Mail },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
   { href: "/profile", label: "Profile", icon: UserCircle },
 ];
 
-const PUBLIC = new Set(["/login", "/signup", "/verify-email"]);
+const PUBLIC = new Set([
+  "/login",
+  "/signup",
+  "/verify-email",
+  "/forgot-password",
+  "/reset-password",
+]);
 const FULLSCREEN = new Set(["/onboarding"]);
 
 function isPublic(pathname: string): boolean {

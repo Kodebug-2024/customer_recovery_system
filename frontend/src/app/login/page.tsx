@@ -111,12 +111,20 @@ export default function LoginPage() {
             <Button type="submit" disabled={busy} className="w-full">
               {busy ? "Signing in…" : "Sign in"}
             </Button>
-            <p className="text-xs text-muted-foreground text-center w-full">
-              Don&apos;t have an account?{" "}
-              <Link href="/signup" className="text-primary hover:underline">
-                Create one
+            <div className="flex justify-between w-full text-xs">
+              <Link
+                href="/forgot-password"
+                className="text-muted-foreground hover:text-primary hover:underline"
+              >
+                Forgot password?
               </Link>
-            </p>
+              <span className="text-muted-foreground">
+                No account?{" "}
+                <Link href="/signup" className="text-primary hover:underline">
+                  Create one
+                </Link>
+              </span>
+            </div>
           </CardFooter>
         </form>
       </Card>

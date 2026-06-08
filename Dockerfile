@@ -8,6 +8,10 @@ RUN mvn -B -q -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+# python3 is only needed by the secrets entrypoint for AWS / Vault providers.
+RUN apk add --no-cache python3
 COPY --from=build /app/target/*.jar app.jar
+COPY deploy/scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

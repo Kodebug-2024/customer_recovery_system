@@ -11,7 +11,6 @@ import com.codezilla.crm.tenant.TenantRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,11 +25,13 @@ public class LeadCreatedListener {
     private final NotificationService notifications;
     private final MessageService messages;
     private final BillingGate billing;
+    private final com.codezilla.crm.webhook.outbound.WebhookDeliveryService outboundWebhooks;
 
     public LeadCreatedListener(LeadRepository leads, TenantRepository tenants,
                                MessagingService messaging, AiReplyService ai,
                                NotificationService notifications, MessageService messages,
-                               BillingGate billing) {
+                               BillingGate billing,
+                               com.codezilla.crm.webhook.outbound.WebhookDeliveryService outboundWebhooks) {
         this.leads = leads;
         this.tenants = tenants;
         this.messaging = messaging;
@@ -38,9 +39,15 @@ public class LeadCreatedListener {
         this.notifications = notifications;
         this.messages = messages;
         this.billing = billing;
+        this.outboundWebhooks = outboundWebhooks;
     }
 
-    @Async
+    /**
+     * Runs synchronously on the request thread. Each side-effect is wrapped in
+     * {@link #safely} so a failure in one (e.g. WhatsApp 401) cannot block the
+     * others (e.g. outbound webhooks). The slow bits — outbound webhook POSTs
+     * and AI replies — are themselves {@code @Async} inside their services.
+     */
     @EventListener
     public void on(LeadCreatedEvent event) {
         TenantContext.set(event.tenantId());
@@ -53,24 +60,43 @@ public class LeadCreatedListener {
             Lead lead = leads.findById(event.leadId()).orElse(null);
             if (lead == null) return;
 
-            // AI replies require the tenant opt-in AND a paid plan (Pro).
-            boolean useAi = tenant.isAiEnabled()
-                    && lead.getMessage() != null && !lead.getMessage().isBlank()
-                    && billing.aiAllowed();
-            if (useAi) {
-                String reply = ai.generate(tenant, lead.getMessage());
-                if (reply != null && !reply.isBlank()) {
-                    messaging.sendText(lead, reply, "whatsapp");
+            // Each side effect is isolated — a misconfigured WhatsApp token
+            // must not block outbound webhooks from firing, and vice versa.
+            safely("auto-reply", () -> {
+                boolean useAi = tenant.isAiEnabled()
+                        && lead.getMessage() != null && !lead.getMessage().isBlank()
+                        && billing.aiAllowed();
+                if (useAi) {
+                    String reply = ai.generate(tenant, lead.getMessage());
+                    if (reply != null && !reply.isBlank()) {
+                        messaging.sendText(lead, reply, "whatsapp");
+                    }
+                } else {
+                    messaging.sendAutoReply(tenant, lead);
                 }
-            } else {
-                messaging.sendAutoReply(tenant, lead);
-            }
+            });
 
-            notifications.notifyNewLead(tenant, lead);
-        } catch (Exception ex) {
-            log.error("Failed to process LeadCreatedEvent {}", event, ex);
+            safely("notify", () -> notifications.notifyNewLead(tenant, lead));
+
+            safely("outbound-webhook", () -> {
+                java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                payload.put("id", lead.getId().toString());
+                payload.put("name", lead.getName());
+                payload.put("phone", lead.getPhone());
+                payload.put("email", lead.getEmail());
+                payload.put("source", lead.getSource());
+                payload.put("status", lead.getStatus().name());
+                payload.put("message", lead.getMessage());
+                outboundWebhooks.publish(tenant.getId(), "lead.created", payload);
+            });
         } finally {
             TenantContext.clear();
+        }
+    }
+
+    private void safely(String name, Runnable r) {
+        try { r.run(); } catch (Exception e) {
+            log.warn("lead-created side-effect '{}' failed: {}", name, e.toString());
         }
     }
 }

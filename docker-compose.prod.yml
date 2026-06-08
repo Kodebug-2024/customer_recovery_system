@@ -129,8 +129,30 @@ services:
     ports:
       - "3001:3000"
 
+  backup:
+    build: ./deploy/backup
+    restart: always
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-crm}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-crm}
+      S3_BUCKET: ${BACKUP_S3_BUCKET:?set BACKUP_S3_BUCKET}
+      S3_PREFIX: ${BACKUP_S3_PREFIX:-crm}
+      S3_ENDPOINT_URL: ${BACKUP_S3_ENDPOINT_URL:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      BACKUP_CRON: ${BACKUP_CRON:-0 3 * * *}
+      RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - backup-data:/backups
+
 volumes:
   pgdata:
   redisdata:
   prometheus-data:
   grafana-data:
+  backup-data:
