@@ -5,16 +5,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, RefreshCw, Trash2 } from "lucide-react";
 
 interface Doc {
-  id: string; title: string; content: string; indexed: boolean;
-  createdAt: string; updatedAt: string;
+  id: string;
+  title: string;
+  content: string;
+  indexed: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function KnowledgePage() {
@@ -25,56 +41,87 @@ export default function KnowledgePage() {
   const [content, setContent] = useState("");
 
   async function load() {
-    try { setDocs(await api<Doc[]>("/api/knowledge")); }
-    catch (e) { setError((e as Error).message); }
+    try {
+      setDocs(await api<Doc[]>("/api/knowledge"));
+    } catch (e) {
+      setError((e as Error).message);
+    }
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     try {
-      await api("/api/knowledge", { method: "POST", body: JSON.stringify({ title, content }) });
-      setOpen(false); setTitle(""); setContent(""); load();
-    } catch (e) { setError((e as Error).message); }
+      await api("/api/knowledge", {
+        method: "POST",
+        body: JSON.stringify({ title, content }),
+      });
+      setOpen(false);
+      setTitle("");
+      setContent("");
+      load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
   }
 
   async function reindex(id: string) {
-    try { await api(`/api/knowledge/${id}/reindex`, { method: "POST" }); load(); }
-    catch (e) { setError((e as Error).message); }
+    try {
+      await api(`/api/knowledge/${id}/reindex`, { method: "POST" });
+      load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
   }
 
   async function remove(id: string) {
     if (!confirm("Delete this document?")) return;
-    try { await api(`/api/knowledge/${id}`, { method: "DELETE" }); load(); }
-    catch (e) { setError((e as Error).message); }
+    try {
+      await api(`/api/knowledge/${id}`, { method: "DELETE" });
+      load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
   }
 
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Knowledge base</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Knowledge base
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Upload product info, FAQs, pricing, etc. AI replies will reference these.
+            Upload product info, FAQs, pricing, etc. AI replies will reference
+            these.
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" /> Add document</Button>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" /> Add document
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add knowledge document</DialogTitle>
               <DialogDescription>
-                Plain text or markdown. The full document is embedded for retrieval; keep
-                it focused (one topic per doc works best).
+                Plain text or markdown. The full document is embedded for
+                retrieval; keep it focused (one topic per doc works best).
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={create} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="kt">Title</Label>
-                <Input id="kt" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                <Input
+                  id="kt"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="kc">Content</Label>
@@ -106,10 +153,19 @@ export default function KnowledgePage() {
                   <Badge variant={d.indexed ? "success" : "warning"}>
                     {d.indexed ? "indexed" : "not indexed"}
                   </Badge>
-                  <Button size="icon" variant="ghost" onClick={() => reindex(d.id)} title="Re-index">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => reindex(d.id)}
+                    title="Re-index"
+                  >
                     <RefreshCw className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => remove(d.id)}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => remove(d.id)}
+                  >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
@@ -119,14 +175,18 @@ export default function KnowledgePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm whitespace-pre-wrap line-clamp-3">{d.content}</p>
+              <p className="text-sm whitespace-pre-wrap line-clamp-3">
+                {d.content}
+              </p>
             </CardContent>
           </Card>
         ))}
         {docs.length === 0 && (
-          <Card><CardContent className="py-8 text-center text-muted-foreground text-sm">
-            No knowledge documents yet. Add one to give the AI context.
-          </CardContent></Card>
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground text-sm">
+              No knowledge documents yet. Add one to give the AI context.
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

@@ -6,11 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { CalendarCheck2, CheckCircle2 } from "lucide-react";
 
-interface PublicTenantInfo { name: string; industry: string | null; blurb: string | null; }
+interface PublicTenantInfo {
+  name: string;
+  industry: string | null;
+  blurb: string | null;
+}
 
 /**
  * PUBLIC booking page. No auth required. The slug maps to a tenant; submitting
@@ -34,7 +43,10 @@ export default function BookPage() {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
     fetch(`${apiBase}/book/${slug}`)
       .then(async (r) => {
-        if (!r.ok) throw new Error(r.status === 404 ? "Booking page not found" : `HTTP ${r.status}`);
+        if (!r.ok)
+          throw new Error(
+            r.status === 404 ? "Booking page not found" : `HTTP ${r.status}`,
+          );
         setInfo(await r.json());
       })
       .catch((e) => setError(e.message));
@@ -42,22 +54,33 @@ export default function BookPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true); setError(null);
+    setBusy(true);
+    setError(null);
     try {
       const startsAt = new Date(`${date}T${time}:00`).toISOString();
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiBase =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
       const r = await fetch(`${apiBase}/book/${slug}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone: phone || null, email: email || null, message, startsAt }),
+        body: JSON.stringify({
+          name,
+          phone: phone || null,
+          email: email || null,
+          message,
+          startsAt,
+        }),
       });
       if (!r.ok) {
         const t = await r.text();
         throw new Error(t || `Booking failed (${r.status})`);
       }
       setDone(true);
-    } catch (e) { setError((e as Error).message); }
-    finally { setBusy(false); }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (error && !info) {
@@ -107,28 +130,59 @@ export default function BookPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2 col-span-2">
                 <Label htmlFor="bn">Your name</Label>
-                <Input id="bn" value={name} onChange={(e) => setName(e.target.value)} required />
+                <Input
+                  id="bn"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bp">Phone</Label>
-                <Input id="bp" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                <Input
+                  id="bp"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="be">Email</Label>
-                <Input id="be" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input
+                  id="be"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bd">Date</Label>
-                <Input id="bd" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+                <Input
+                  id="bd"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bt">Time</Label>
-                <Input id="bt" type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+                <Input
+                  id="bt"
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  required
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="bm">Anything we should know? (optional)</Label>
-              <Textarea id="bm" value={message} onChange={(e) => setMessage(e.target.value)} className="min-h-[80px]" />
+              <Textarea
+                id="bm"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="min-h-[80px]"
+              />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
           </CardContent>
