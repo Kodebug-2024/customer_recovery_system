@@ -33,11 +33,11 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started · ⏭ deferred / out of
 | 16  | Plan-based feature gating                    | ✅     | `BillingGate` + `PlanLimits`. UI/manual creates 402 over quota; webhooks accept + audit. AI requires Pro. Usage bar in /billing.                                                  |
 | 17  | Onboarding wizard (3 steps after signup)     | ✅     | `/onboarding` page (WhatsApp → auto-reply → sample lead). Signup redirects here. `POST /api/settings/complete-onboarding` records completion.                                     |
 | 18  | Lead assignment + "assigned to me" filter    | ✅     | `assigned_to_user_id` FK + `PATCH /api/leads/{id}/assign`. Query params `?mine=true` and `?assignedToUserId`. UI: assignee dropdown on detail; "Mine" toggle on list.             |
-| 19  | Notes on leads (internal-only)               | ⬜     | `lead_notes` table.                                                                                                                                                               |
-| 20  | Tags / labels on leads                       | ⬜     | `lead_tags` many-to-many.                                                                                                                                                         |
+| 19  | Notes on leads (internal-only)               | ✅     | `lead_notes` table + `/api/leads/{id}/notes` (GET, POST, DELETE). Author tracked via JWT. UI: Internal notes card on lead detail page.                                            |
+| 20  | Tags / labels on leads                       | ✅     | `tags` + `lead_tags` M2M. `/api/tags` catalog and `/api/leads/{id}/tags` (attach/detach). Inline tag chips with combobox-style add on lead detail.                                |
 | 21  | Bulk actions (status change, delete)         | ⬜     | Frontend checkbox column + backend batch endpoints.                                                                                                                               |
 | 22  | WhatsApp template message support            | ⬜     | For sends outside 24h window. Required by Meta.                                                                                                                                   |
-| 23  | Real-time conversation view (SSE or polling) | ⬜     | SSE preferred.                                                                                                                                                                    |
+| 23  | Real-time conversation view (SSE or polling) | ✅     | `MessageEventBus` (Reactor Sinks) + `GET /api/leads/{id}/messages/stream` SSE. JWT via `?access_token=` query param (EventSource limitation). Frontend wires `EventSource` for live messages. |
 | 24  | Full-text search on leads + messages         | ⬜     | Postgres `tsvector` + GIN index.                                                                                                                                                  |
 | 25  | Dashboard analytics charts                   | ✅     | 3 endpoints under `/api/analytics`. Dashboard shows KPI cards + 30-day line chart + funnel bars + source bars. Built with `recharts`.                                             |
 | 26  | Email template editor (multi-template)       | ⬜     | Variables + per-channel templates.                                                                                                                                                |
@@ -53,8 +53,8 @@ Legend: ✅ done · 🟡 in progress · ⬜ not started · ⏭ deferred / out of
 | 31  | Mobile-responsive QA pass            | ⬜     | Tailwind already responsive; verify on real devices. |
 | 32  | Mobile push notifications            | ⬜     | Web Push API or native wrapper.                      |
 | 33  | Instagram DM + Facebook Messenger    | ⬜     | Same Meta Graph API.                                 |
-| 34  | Calendar / appointment booking       | ⬜     | Calendly-style.                                      |
-| 35  | RAG knowledge base for AI replies    | ⬜     | pgvector + upload UI.                                |
+| 34  | Calendar / appointment booking       | ✅     | `appointments` table + per-tenant `booking_slug` + public `GET/POST /book/{slug}` (no auth) creates Lead + Appointment. Settings UI exposes the slug. Detail page lists scheduled appointments. |
+| 35  | RAG knowledge base for AI replies    | ✅     | `knowledge_documents` (embedding stored as JSON text — portable; swap to pgvector when corpus grows). OpenAI `text-embedding-3-small`. `KnowledgeService.retrieve` returns top-k by cosine. `AiReplyService` injects context into the system prompt. /knowledge page for CRUD. |
 | 36  | Team chat / @mentions                | ⬜     |                                                      |
 | 37  | i18n (EN / ZH / MS)                  | ⬜     | next-intl.                                           |
 | 38  | Dark mode                            | ⬜     | Tailwind dark variant.                               |

@@ -30,9 +30,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
-        String header = req.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+        String token = extractToken(req);
+        if (token != null) {
             try {
                 Claims c = jwt.parse(token);
                 UUID userId = UUID.fromString(c.getSubject());
@@ -52,5 +51,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         } finally {
             TenantContext.clear();
         }
+    }
+
+    /**
+     * Token from Authorization header. EventSource (SSE) can't send custom
+     * headers, so we also accept ?access_token=... on streaming endpoints.
+     */
+    private String extractToken(HttpServletRequest req) {
+        String header = req.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) return header.substring(7);
+        String uri = req.getRequestURI();
+        if (uri != null && uri.endsWith("/stream")) {
+            String q = req.getParameter("access_token");
+            if (q != null && !q.isBlank()) return q;
+        }
+        return null;
     }
 }

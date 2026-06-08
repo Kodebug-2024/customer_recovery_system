@@ -11,9 +11,11 @@ import java.util.UUID;
 public class MessageService {
 
     private final MessageRepository repo;
+    private final MessageEventBus bus;
 
-    public MessageService(MessageRepository repo) {
+    public MessageService(MessageRepository repo, MessageEventBus bus) {
         this.repo = repo;
+        this.bus = bus;
     }
 
     @Transactional
@@ -23,7 +25,9 @@ public class MessageService {
         m.setDirection(direction);
         m.setChannel(channel);
         m.setContent(content);
-        return repo.save(m);
+        Message saved = repo.save(m);
+        bus.publish(leadId, saved);
+        return saved;
     }
 
     @Transactional(readOnly = true)

@@ -58,6 +58,7 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**", "/actuator/health", "/actuator/health/**", "/error").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/webhooks/stripe").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/webhook/whatsapp").permitAll()
+                .requestMatchers("/book/**").permitAll()
                 .requestMatchers("/webhook/**").hasRole("WEBHOOK")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().denyAll())

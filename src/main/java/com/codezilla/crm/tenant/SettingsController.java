@@ -27,6 +27,9 @@ public class SettingsController {
             boolean telegramBotTokenConfigured,
             String telegramChatId,
             boolean openaiApiKeyConfigured,
+            String bookingSlug,
+            boolean bookingEnabled,
+            String bookingBlurb,
             java.time.Instant onboardingCompletedAt) {}
 
     /**
@@ -41,7 +44,10 @@ public class SettingsController {
             String whatsappVerifyToken,
             String telegramBotToken,
             String telegramChatId,
-            String openaiApiKey) {}
+            String openaiApiKey,
+            String bookingSlug,
+            Boolean bookingEnabled,
+            String bookingBlurb) {}
 
     @GetMapping
     public SettingsView get() {
@@ -68,6 +74,14 @@ public class SettingsController {
         if (body.telegramBotToken() != null)    t.setTelegramBotTokenEnc(encOrClear(body.telegramBotToken()));
         if (body.openaiApiKey() != null)        t.setOpenaiApiKeyEnc(encOrClear(body.openaiApiKey()));
 
+        if (body.bookingSlug() != null) {
+            String slug = body.bookingSlug().trim().toLowerCase().replaceAll("[^a-z0-9-]", "-");
+            t.setBookingSlug(slug.isEmpty() ? null : slug);
+        }
+        if (body.bookingEnabled() != null) t.setBookingEnabled(body.bookingEnabled());
+        if (body.bookingBlurb() != null)
+            t.setBookingBlurb(body.bookingBlurb().isBlank() ? null : body.bookingBlurb());
+
         tenants.save(t);
         return view(t);
     }
@@ -87,6 +101,9 @@ public class SettingsController {
                 t.getTelegramBotTokenEnc() != null && t.getTelegramBotTokenEnc().length > 0,
                 t.getTelegramChatId(),
                 t.getOpenaiApiKeyEnc() != null && t.getOpenaiApiKeyEnc().length > 0,
+                t.getBookingSlug(),
+                t.isBookingEnabled(),
+                t.getBookingBlurb(),
                 t.getOnboardingCompletedAt());
     }
 

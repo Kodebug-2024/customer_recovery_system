@@ -56,6 +56,15 @@ public class Tenant {
     @Column(name = "onboarding_completed_at")
     private Instant onboardingCompletedAt;
 
+    @Column(name = "booking_slug", length = 64, unique = true)
+    private String bookingSlug;
+
+    @Column(name = "booking_enabled", nullable = false)
+    private boolean bookingEnabled;
+
+    @Column(name = "booking_blurb", columnDefinition = "text")
+    private String bookingBlurb;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

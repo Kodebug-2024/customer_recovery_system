@@ -14,6 +14,7 @@ import {
   UserCircle,
   LogOut,
   CreditCard,
+  BookOpen,
 } from "lucide-react";
 
 const NAV = [
@@ -21,6 +22,7 @@ const NAV = [
   { href: "/leads", label: "Leads", icon: Inbox },
   { href: "/audit", label: "Audit log", icon: ScrollText },
   { href: "/users", label: "Users", icon: UsersIcon },
+  { href: "/knowledge", label: "Knowledge", icon: BookOpen },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
   { href: "/profile", label: "Profile", icon: UserCircle },
@@ -29,15 +31,22 @@ const NAV = [
 const PUBLIC = new Set(["/login", "/signup", "/verify-email"]);
 const FULLSCREEN = new Set(["/onboarding"]);
 
+function isPublic(pathname: string): boolean {
+  if (PUBLIC.has(pathname)) return true;
+  // Public booking pages: /book/{slug}
+  if (pathname.startsWith("/book/")) return true;
+  return false;
+}
+
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
-    if (!getToken() && !PUBLIC.has(pathname)) router.replace("/login");
+    if (!getToken() && !isPublic(pathname)) router.replace("/login");
   }, [pathname, router]);
 
-  if (PUBLIC.has(pathname)) return <>{children}</>;
+  if (isPublic(pathname)) return <>{children}</>;
   if (FULLSCREEN.has(pathname)) return <>{children}</>;
 
   return (
