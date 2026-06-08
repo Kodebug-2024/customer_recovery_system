@@ -71,6 +71,13 @@ app:
     login:
       requests-per-minute: ${LOGIN_RPM:10}
 
+billing:
+  mode: ${BILLING_MODE:stub} # stub | real
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    pro-price-id: ${STRIPE_PRO_PRICE_ID:}
+
 integrations:
   whatsapp:
     mode: ${WHATSAPP_MODE:stub} # stub | real

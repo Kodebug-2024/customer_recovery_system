@@ -49,6 +49,7 @@ export interface Settings {
   telegramBotTokenConfigured: boolean;
   telegramChatId: string | null;
   openaiApiKeyConfigured: boolean;
+  onboardingCompletedAt: string | null;
 }
 
 export interface AuditEvent {

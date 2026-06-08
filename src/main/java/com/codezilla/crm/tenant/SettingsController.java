@@ -26,7 +26,8 @@ public class SettingsController {
             boolean whatsappVerifyTokenConfigured,
             boolean telegramBotTokenConfigured,
             String telegramChatId,
-            boolean openaiApiKeyConfigured) {}
+            boolean openaiApiKeyConfigured,
+            java.time.Instant onboardingCompletedAt) {}
 
     /**
      * For sensitive fields: null = leave unchanged, "" (empty string) = clear,
@@ -85,6 +86,15 @@ public class SettingsController {
                 t.getWhatsappVerifyTokenEnc() != null && t.getWhatsappVerifyTokenEnc().length > 0,
                 t.getTelegramBotTokenEnc() != null && t.getTelegramBotTokenEnc().length > 0,
                 t.getTelegramChatId(),
-                t.getOpenaiApiKeyEnc() != null && t.getOpenaiApiKeyEnc().length > 0);
+                t.getOpenaiApiKeyEnc() != null && t.getOpenaiApiKeyEnc().length > 0,
+                t.getOnboardingCompletedAt());
+    }
+
+    @PostMapping("/complete-onboarding")
+    public SettingsView completeOnboarding() {
+        Tenant t = tenants.findById(TenantContext.require()).orElseThrow();
+        t.setOnboardingCompletedAt(java.time.Instant.now());
+        tenants.save(t);
+        return view(t);
     }
 }

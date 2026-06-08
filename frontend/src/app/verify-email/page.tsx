@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,15 @@ import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 type State = "checking" | "ok" | "bad";
 
-export default function VerifyEmailPage() {
+export default function VerifyEmailPageOuter() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyEmailPage />
+    </Suspense>
+  );
+}
+
+function VerifyEmailPage() {
   const params = useSearchParams();
   const token = params.get("token");
   const [state, setState] = useState<State>("checking");

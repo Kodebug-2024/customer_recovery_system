@@ -13,6 +13,7 @@ import {
   Inbox,
   UserCircle,
   LogOut,
+  CreditCard,
 } from "lucide-react";
 
 const NAV = [
@@ -20,11 +21,13 @@ const NAV = [
   { href: "/leads", label: "Leads", icon: Inbox },
   { href: "/audit", label: "Audit log", icon: ScrollText },
   { href: "/users", label: "Users", icon: UsersIcon },
+  { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
   { href: "/profile", label: "Profile", icon: UserCircle },
 ];
 
 const PUBLIC = new Set(["/login", "/signup", "/verify-email"]);
+const FULLSCREEN = new Set(["/onboarding"]);
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -35,6 +38,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, [pathname, router]);
 
   if (PUBLIC.has(pathname)) return <>{children}</>;
+  if (FULLSCREEN.has(pathname)) return <>{children}</>;
 
   return (
     <div className="min-h-screen flex bg-muted/30">

@@ -53,6 +53,9 @@ public class Tenant {
     @Column(name = "openai_api_key_enc")
     private byte[] openaiApiKeyEnc;
 
+    @Column(name = "onboarding_completed_at")
+    private Instant onboardingCompletedAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

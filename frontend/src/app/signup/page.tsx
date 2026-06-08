@@ -46,7 +46,7 @@ export default function SignupPage() {
       }
       const data = await res.json();
       setToken(data.token);
-      router.replace("/");
+      router.replace("/onboarding");
     } catch (err) {
       setError((err as Error).message);
     } finally {
