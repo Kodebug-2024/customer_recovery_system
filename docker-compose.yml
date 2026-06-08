@@ -40,10 +40,36 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-me-change-me-change-me-change-me-32+chars}
       WEBHOOK_API_KEY: ${WEBHOOK_API_KEY:-dev-webhook-key}
       WHATSAPP_MODE: ${WHATSAPP_MODE:-stub}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
       TELEGRAM_MODE: ${TELEGRAM_MODE:-stub}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       OPENAI_MODE: ${OPENAI_MODE:-stub}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      EMAIL_MODE: ${EMAIL_MODE:-stub}
+      EMAIL_FROM: ${EMAIL_FROM:-no-reply@example.com}
+      EMAIL_OWNER: ${EMAIL_OWNER:-}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SHEETS_MODE: ${SHEETS_MODE:-stub}
+      SHEETS_SPREADSHEET_ID: ${SHEETS_SPREADSHEET_ID:-}
+      SHEETS_RANGE: ${SHEETS_RANGE:-Sheet1!A:H}
+      SHEETS_CREDENTIALS_JSON: ${SHEETS_CREDENTIALS_JSON:-}
     ports:
       - "8080:8080"
+
+  dashboard:
+    build: ./frontend
+    depends_on:
+      - app
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
 
 volumes:
   pgdata:
