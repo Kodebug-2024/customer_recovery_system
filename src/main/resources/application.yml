@@ -87,6 +87,11 @@ app:
     deleted-leads-days: ${RETENTION_DELETED_LEADS_DAYS:30}
     cron: ${RETENTION_CRON:0 15 * * * *}
 
+# AI reply gateway. The router tries: FAQ engine -> default-provider -> fallback.
+# Tenants can pin to faq/ollama/openai via their settings page.
+ai:
+  default-provider: ${AI_DEFAULT_PROVIDER:ollama} # ollama | openai
+
 billing:
   mode: ${BILLING_MODE:stub} # stub | real
   stripe:
@@ -123,6 +128,10 @@ integrations:
     base-url: https://api.openai.com/v1
     api-key: ${OPENAI_API_KEY:}
     model: gpt-4o-mini
+  ollama:
+    enabled: ${OLLAMA_ENABLED:true}
+    base-url: ${OLLAMA_URL:http://ollama:11434}
+    model: ${OLLAMA_MODEL:qwen2.5:3b}
   email:
     mode: ${EMAIL_MODE:stub} # stub | real
     from: ${EMAIL_FROM:no-reply@example.com}

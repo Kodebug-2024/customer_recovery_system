@@ -8,11 +8,19 @@ export default function LegalFooter() {
   return (
     <footer className="mt-12 border-t py-6 text-center text-xs text-muted-foreground">
       <div className="space-x-4">
-        <Link href="/legal/terms" className="hover:underline">Terms</Link>
-        <Link href="/legal/privacy" className="hover:underline">Privacy</Link>
-        <a href="mailto:support@codezilla.example" className="hover:underline">Contact</a>
+        <Link href="/legal/terms" className="hover:underline">
+          Terms
+        </Link>
+        <Link href="/legal/privacy" className="hover:underline">
+          Privacy
+        </Link>
+        <a href="mailto:support@codezilla.example" className="hover:underline">
+          Contact
+        </a>
       </div>
-      <p className="mt-2">© {new Date().getFullYear()} Codezilla. All rights reserved.</p>
+      <p className="mt-2">
+        © {new Date().getFullYear()} Codezilla. All rights reserved.
+      </p>
     </footer>
   );
 }

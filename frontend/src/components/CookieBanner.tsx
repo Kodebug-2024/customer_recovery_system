@@ -31,13 +31,28 @@ export default function CookieBanner() {
     <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 p-4 shadow-lg backdrop-blur">
       <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          We use a small number of cookies to keep you logged in and to measure errors. See our{" "}
-          <Link href="/legal/privacy" className="underline">Privacy Policy</Link> and{" "}
-          <Link href="/legal/terms" className="underline">Terms</Link>.
+          We use a small number of cookies to keep you logged in and to measure
+          errors. See our{" "}
+          <Link href="/legal/privacy" className="underline">
+            Privacy Policy
+          </Link>{" "}
+          and{" "}
+          <Link href="/legal/terms" className="underline">
+            Terms
+          </Link>
+          .
         </p>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => decide("essential")}>Essential only</Button>
-          <Button size="sm" onClick={() => decide("all")}>Accept all</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => decide("essential")}
+          >
+            Essential only
+          </Button>
+          <Button size="sm" onClick={() => decide("all")}>
+            Accept all
+          </Button>
         </div>
       </div>
     </div>

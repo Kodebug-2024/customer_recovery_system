@@ -50,6 +50,9 @@ public class LeadCreatedListener {
      */
     @EventListener
     public void on(LeadCreatedEvent event) {
+        // Save + restore so we don't trample a TenantContext already set by an
+        // upstream filter (e.g. WhatsAppSignatureFilter on the webhook path).
+        java.util.UUID previous = TenantContext.get();
         TenantContext.set(event.tenantId());
         try {
             Tenant tenant = tenants.findById(event.tenantId()).orElse(null);
@@ -90,7 +93,8 @@ public class LeadCreatedListener {
                 outboundWebhooks.publish(tenant.getId(), "lead.created", payload);
             });
         } finally {
-            TenantContext.clear();
+            if (previous == null) TenantContext.clear();
+            else TenantContext.set(previous);
         }
     }
 

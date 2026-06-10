@@ -129,9 +129,13 @@ export default function LoginPage() {
         </form>
       </Card>
       <p className="mt-6 text-center text-xs text-muted-foreground">
-        <Link href="/legal/terms" className="hover:underline">Terms</Link>
+        <Link href="/legal/terms" className="hover:underline">
+          Terms
+        </Link>
         {" · "}
-        <Link href="/legal/privacy" className="hover:underline">Privacy</Link>
+        <Link href="/legal/privacy" className="hover:underline">
+          Privacy
+        </Link>
       </p>
     </div>
   );

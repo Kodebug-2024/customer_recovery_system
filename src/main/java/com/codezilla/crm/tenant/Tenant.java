@@ -32,6 +32,10 @@ public class Tenant {
     @Column(name = "auto_reply_template", columnDefinition = "text")
     private String autoReplyTemplate;
 
+    /** auto | faq | ollama | openai. See V20 migration for semantics. */
+    @Column(name = "ai_provider", nullable = false, length = 16)
+    private String aiProvider = "auto";
+
     @Column(name = "webhook_secret")
     private String webhookSecret;
 

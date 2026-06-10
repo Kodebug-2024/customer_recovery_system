@@ -10,7 +10,10 @@ if (dsn) {
     // Strip URLs that may contain tokens/IDs from breadcrumbs.
     beforeBreadcrumb(b) {
       if (b.data && typeof b.data.url === "string") {
-        b.data.url = b.data.url.replace(/access_token=[^&]+/g, "access_token=***");
+        b.data.url = b.data.url.replace(
+          /access_token=[^&]+/g,
+          "access_token=***",
+        );
       }
       return b;
     },

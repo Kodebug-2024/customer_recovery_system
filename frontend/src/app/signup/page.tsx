@@ -31,7 +31,8 @@ export default function SignupPage() {
     setBusy(true);
     setError(null);
     try {
-      if (!agreed) throw new Error("Please accept the Terms and Privacy Policy");
+      if (!agreed)
+        throw new Error("Please accept the Terms and Privacy Policy");
       if (password.length < 8)
         throw new Error("Password must be at least 8 characters");
       const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -130,9 +131,18 @@ export default function SignupPage() {
               />
               <span>
                 I agree to the{" "}
-                <Link href="/legal/terms" target="_blank" className="underline">Terms</Link>
-                {" "}and{" "}
-                <Link href="/legal/privacy" target="_blank" className="underline">Privacy Policy</Link>.
+                <Link href="/legal/terms" target="_blank" className="underline">
+                  Terms
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/legal/privacy"
+                  target="_blank"
+                  className="underline"
+                >
+                  Privacy Policy
+                </Link>
+                .
               </span>
             </label>
             <Button type="submit" disabled={busy || !agreed} className="w-full">

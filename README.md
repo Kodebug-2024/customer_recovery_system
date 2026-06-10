@@ -4,6 +4,8 @@ A multi-tenant SaaS-style CRM for SMEs. Captures leads from WhatsApp / web forms
 
 See [Project.MD](Project.MD) for the full design.
 
+**Other docs:** [USER_GUIDE.md](USER_GUIDE.md) (for SME owners using the dashboard) · [DEPLOY.md](DEPLOY.md) (production deploy) · [ROADMAP.md](ROADMAP.md) (feature status).
+
 ## Stack
 
 - Java 21, Spring Boot 3.3 (modular monolith)

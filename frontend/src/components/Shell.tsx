@@ -16,6 +16,7 @@ import {
   CreditCard,
   BookOpen,
   Mail,
+  MessageSquareQuote,
 } from "lucide-react";
 
 const NAV = [
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/audit", label: "Audit log", icon: ScrollText },
   { href: "/users", label: "Users", icon: UsersIcon },
   { href: "/knowledge", label: "Knowledge", icon: BookOpen },
+  { href: "/faqs", label: "FAQs", icon: MessageSquareQuote },
   { href: "/templates", label: "Templates", icon: Mail },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: SettingsIcon },

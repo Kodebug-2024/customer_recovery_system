@@ -54,10 +54,16 @@ public class MessagingService {
     }
 
     public void sendText(Lead lead, String body, String channel) {
-        if ("whatsapp".equalsIgnoreCase(channel) && lead.getPhone() != null) {
-            whatsapp.sendText(lead.getPhone(), body);
+        // Record the OUTBOUND message even when the upstream send fails — the
+        // conversation history is more valuable than perfect delivery accounting.
+        // Failures are still visible via Sentry / app logs from the client.
+        try {
+            if ("whatsapp".equalsIgnoreCase(channel) && lead.getPhone() != null) {
+                whatsapp.sendText(lead.getPhone(), body);
+            }
+        } finally {
+            messages.record(lead.getId(), MessageDirection.OUTBOUND, channel, body);
         }
-        messages.record(lead.getId(), MessageDirection.OUTBOUND, channel, body);
     }
 
     /**

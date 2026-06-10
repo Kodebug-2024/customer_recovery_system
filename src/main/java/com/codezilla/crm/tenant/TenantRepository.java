@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface TenantRepository extends JpaRepository<Tenant, UUID> {
     Optional<Tenant> findByApiKey(String apiKey);
     Optional<Tenant> findByBookingSlug(String bookingSlug);
+    Optional<Tenant> findByWhatsappPhoneNumberId(String whatsappPhoneNumberId);
 }

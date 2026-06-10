@@ -19,7 +19,7 @@ public class SettingsController {
 
     /** Sensitive fields are returned as booleans only — never the cleartext. */
     public record SettingsView(
-            String name, String industry, boolean aiEnabled,
+            String name, String industry, boolean aiEnabled, String aiProvider,
             String autoReplyTemplate, boolean webhookSecretConfigured,
             String whatsappPhoneNumberId,
             boolean whatsappAccessTokenConfigured,
@@ -37,7 +37,7 @@ public class SettingsController {
      * anything else = set to that value (will be encrypted).
      */
     public record SettingsUpdate(
-            String name, String industry, Boolean aiEnabled,
+            String name, String industry, Boolean aiEnabled, String aiProvider,
             String autoReplyTemplate, String webhookSecret,
             String whatsappPhoneNumberId,
             String whatsappAccessToken,
@@ -61,6 +61,14 @@ public class SettingsController {
         if (body.name() != null) t.setName(body.name());
         if (body.industry() != null) t.setIndustry(body.industry());
         if (body.aiEnabled() != null) t.setAiEnabled(body.aiEnabled());
+        if (body.aiProvider() != null) {
+            String p = body.aiProvider().trim().toLowerCase();
+            if (!java.util.Set.of("auto", "faq", "ollama", "openai").contains(p))
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_REQUEST,
+                        "ai_provider must be one of: auto, faq, ollama, openai");
+            t.setAiProvider(p);
+        }
         if (body.autoReplyTemplate() != null) t.setAutoReplyTemplate(body.autoReplyTemplate());
         if (body.webhookSecret() != null) t.setWebhookSecret(body.webhookSecret().isBlank() ? null : body.webhookSecret());
 
@@ -92,7 +100,7 @@ public class SettingsController {
 
     private SettingsView view(Tenant t) {
         return new SettingsView(
-                t.getName(), t.getIndustry(), t.isAiEnabled(),
+                t.getName(), t.getIndustry(), t.isAiEnabled(), t.getAiProvider(),
                 t.getAutoReplyTemplate(),
                 t.getWebhookSecret() != null && !t.getWebhookSecret().isBlank(),
                 t.getWhatsappPhoneNumberId(),

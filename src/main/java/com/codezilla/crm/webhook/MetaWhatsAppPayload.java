@@ -18,7 +18,12 @@ public record MetaWhatsAppPayload(String object, List<Entry> entry) {
     public record Change(String field, Value value) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Value(List<Contact> contacts, List<Message> messages) {}
+    public record Value(Metadata metadata, List<Contact> contacts, List<Message> messages) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Metadata(
+            @com.fasterxml.jackson.annotation.JsonProperty("display_phone_number") String displayPhoneNumber,
+            @com.fasterxml.jackson.annotation.JsonProperty("phone_number_id") String phoneNumberId) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Contact(String wa_id, Profile profile) {}

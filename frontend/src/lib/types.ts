@@ -41,6 +41,7 @@ export interface Settings {
   name: string;
   industry: string | null;
   aiEnabled: boolean;
+  aiProvider: string;
   autoReplyTemplate: string | null;
   webhookSecretConfigured: boolean;
   whatsappPhoneNumberId: string | null;

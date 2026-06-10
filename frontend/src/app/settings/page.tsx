@@ -58,6 +58,7 @@ export default function SettingsPage() {
         name: s.name,
         industry: s.industry,
         aiEnabled: s.aiEnabled,
+        aiProvider: s.aiProvider,
         autoReplyTemplate: s.autoReplyTemplate,
       };
       if (secret) body.webhookSecret = secret;
@@ -143,8 +144,34 @@ export default function SettingsPage() {
               onCheckedChange={(c) => setS({ ...s, aiEnabled: !!c })}
             />
             <Label htmlFor="ai" className="cursor-pointer">
-              Enable AI replies (uses OpenAI when configured)
+              Enable AI replies
             </Label>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="ai-provider">AI provider</Label>
+            <select
+              id="ai-provider"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={s.aiProvider || "auto"}
+              onChange={(e) => setS({ ...s, aiProvider: e.target.value })}
+              disabled={!s.aiEnabled}
+            >
+              <option value="auto">
+                Auto (FAQ → server default → fallback)
+              </option>
+              <option value="faq">FAQ only (no LLM, free)</option>
+              <option value="ollama">FAQ → Ollama (local, free)</option>
+              <option value="openai">
+                FAQ → OpenAI (Pro plan; falls back to Ollama)
+              </option>
+            </select>
+            <p className="text-xs text-muted-foreground">
+              FAQ matches are always tried first. Manage them on the{" "}
+              <a href="/faqs" className="underline">
+                FAQs page
+              </a>
+              .
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="tmpl">Auto-reply template</Label>

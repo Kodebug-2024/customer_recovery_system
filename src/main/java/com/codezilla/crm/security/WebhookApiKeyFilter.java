@@ -32,9 +32,13 @@ public class WebhookApiKeyFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        if (!request.getRequestURI().startsWith("/webhook/")) return true;
-        // Meta verification handshake has no API key.
-        return "GET".equalsIgnoreCase(request.getMethod()) && "/webhook/whatsapp".equals(request.getRequestURI());
+        String uri = request.getRequestURI();
+        if (!uri.startsWith("/webhook/")) return true;
+        // Meta WhatsApp callbacks use HMAC signature auth (X-Hub-Signature-256),
+        // not our X-Api-Key. Both the GET verification handshake and the POST
+        // callbacks are handled by WhatsAppSignatureFilter instead.
+        if ("/webhook/whatsapp".equals(uri)) return true;
+        return false;
     }
 
     @Override
