@@ -94,6 +94,18 @@ billing:
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
     pro-price-id: ${STRIPE_PRO_PRICE_ID:}
 
+# Sentry SDK auto-initializes when SENTRY_DSN is set. Empty/unset = no-op (dev default).
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:${SPRING_PROFILES_ACTIVE:dev}}
+  release: ${SENTRY_RELEASE:}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
+  send-default-pii: false
+  exception-resolver-order: -2147483647
+  logging:
+    minimum-event-level: warn
+    minimum-breadcrumb-level: info
+
 integrations:
   whatsapp:
     mode: ${WHATSAPP_MODE:stub} # stub | real

@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Shell from "@/components/Shell";
+import CookieBanner from "@/components/CookieBanner";
 
 export const metadata: Metadata = {
   title: "Codezilla CRM",
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Shell>{children}</Shell>
+        <CookieBanner />
       </body>
     </html>
   );

@@ -22,6 +22,7 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -30,6 +31,7 @@ export default function SignupPage() {
     setBusy(true);
     setError(null);
     try {
+      if (!agreed) throw new Error("Please accept the Terms and Privacy Policy");
       if (password.length < 8)
         throw new Error("Password must be at least 8 characters");
       const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -119,7 +121,21 @@ export default function SignupPage() {
             {error && <p className="text-sm text-destructive">{error}</p>}
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" disabled={busy} className="w-full">
+            <label className="flex items-start gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+              />
+              <span>
+                I agree to the{" "}
+                <Link href="/legal/terms" target="_blank" className="underline">Terms</Link>
+                {" "}and{" "}
+                <Link href="/legal/privacy" target="_blank" className="underline">Privacy Policy</Link>.
+              </span>
+            </label>
+            <Button type="submit" disabled={busy || !agreed} className="w-full">
               {busy ? "Creating…" : "Create workspace"}
             </Button>
             <p className="text-xs text-muted-foreground text-center w-full">

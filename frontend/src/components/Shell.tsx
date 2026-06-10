@@ -43,6 +43,8 @@ function isPublic(pathname: string): boolean {
   if (PUBLIC.has(pathname)) return true;
   // Public booking pages: /book/{slug}
   if (pathname.startsWith("/book/")) return true;
+  // Public legal pages
+  if (pathname.startsWith("/legal/")) return true;
   return false;
 }
 
